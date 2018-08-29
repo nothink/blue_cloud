@@ -1,0 +1,23 @@
+{
+    "baseUrl": "http://vcard.ameba.jp/",
+    "chrome": {
+        "executablePath": null,
+        "profilePath": "./Profile",
+        "headless": false,
+        "devtools": false,
+        "slowMo": 100,
+        "args": []
+    },
+    "account": {
+        "username": "",
+        "password": ""
+    },
+    "logger": {
+        "isEnabled": true,
+        "path": "./log"
+    },
+    "study": {
+        "usingSpark": false,
+        "usingSkill": false
+    }
+}
