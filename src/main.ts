@@ -1,10 +1,16 @@
-import * as Runner from './Runner/RunnerBase';
+import * as Runner from './Runner/StudyRunner';
 
-const runner = new Runner.RunnerBase();
+import * as log4js from 'log4js';
+
+const runner = new Runner.StudyRunner();
+
+const logger = log4js.getLogger();
+logger.level = 'debug';
 
 async function main() {
-  await runner.init();
-  await runner.close();
+    await runner.init();
+    await runner.run();
+    await runner.close();
 }
 
 main();

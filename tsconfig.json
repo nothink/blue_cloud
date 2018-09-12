@@ -10,6 +10,9 @@
             "dom"
         ]
     },
+    "formatCodeOptions": {
+        "indentSize": 4
+    },
     "include": [
         "src/*.ts",
         "src/**/*.ts",
