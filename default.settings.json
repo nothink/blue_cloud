@@ -1,5 +1,6 @@
 {
-    "baseUrl": "http://vcard.ameba.jp/",
+    "baseUrl": "https://vcard.ameba.jp/",
+    "testHomeUrl": "https://vcard.ameba.jp/s#study/top",
     "chrome": {
         "executablePath": null,
         "profilePath": "./Profile",
@@ -17,6 +18,7 @@
         "path": "./log"
     },
     "study": {
+        "testRank": 1,
         "usingSpark": false,
         "usingSkill": false
     }

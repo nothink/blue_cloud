@@ -9,6 +9,11 @@ declare module '*settings.json' {
         args: string[];
     }
 
+    interface Viewport {
+        width: number;
+        height: number;
+    }
+
     interface Account {
         username: string;
         password: string;
@@ -20,13 +25,16 @@ declare module '*settings.json' {
     }
 
     interface StudyConfig {
+        testRank: number;
         usingSpark: boolean;
         usingSkill: boolean;
     }
 
     interface Setting {
         baseUrl: string;
+        testHomeUrl: string;
         chrome: Chrome;
+        viewport: Viewport;
         account: Account;
         logger: Logger;
         study: StudyConfig;

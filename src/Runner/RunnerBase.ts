@@ -18,6 +18,8 @@ export default abstract class RunnerBase {
     logger!: log4js.Logger;
     isTerminated: boolean;
 
+    abstract homeUrl: string;
+
     /**
      *  コンストラクタ
      */
@@ -62,19 +64,37 @@ export default abstract class RunnerBase {
         });
 
         this.page = await this.browser.newPage();
-        await this.page.goto(this.conf.baseUrl, { waitUntil: 'networkidle2' });
-        if (this.page.url() !== this.conf.baseUrl) {
+        await this.page.setViewport(this.conf.viewport);
+
+        await this.page.goto(this.conf.baseUrl, { waitUntil: 'networkidle0' });
+
+        if (this.page.url().includes('dauth.user.ameba.jp')) {
+            // dauth.user.ameba.jpへとURL遷移したらログインページと認識
             await this.page.waitFor('input[class="btn btn_primary large"]');
             this.page.click('input[class="btn btn_primary large"]');
             await this.page.waitForNavigation();
 
-            await this.page.type('input[name="accountId"]',
-                                 settings.account.username);
-            await this.page.type('input[name="password"]',
-                                 settings.account.password);
+            await this.page.type(
+                'input[name="accountId"]',
+                settings.account.username,
+            );
+            await this.page.type(
+                'input[name="password"]',
+                settings.account.password,
+            );
 
-            this.page.click('input[class="c-btn c-btn--large c-btn--primary"]');
+            this.page.click(
+                'input[class="c-btn c-btn--large c-btn--primary"]',
+            );
             await this.page.waitForNavigation();
+            return;
+        }
+
+        if (this.page.url() !== this.conf.baseUrl) {
+            // それ以外へのURL遷移を例外とみなす
+            throw Error('URL mismatch: '
+                +  this.conf.baseUrl
+                + ' / ' + this.page.url());
         }
     }
 
@@ -100,27 +120,36 @@ export default abstract class RunnerBase {
      *  失敗時に再実行する
      */
     async redo() {
-        await this.page.reload({ timeout: 120, waitUntil: 'networkidle2' });
+        await this.page.reload({ timeout: 120, waitUntil: 'networkidle0' });
         sleep.msleep(200);
     }
 
     /**
-     *  ホームに戻る
+     *  ベースURLに戻る
+     */
+    async goBase() {
+        await this.page.goto(this.conf.baseUrl, { waitUntil: 'networkidle0' });
+    }
+    /**
+     *  各ページごとのホームに戻る
      */
     async goHome() {
-        await this.page.goto(this.conf.baseUrl, { waitUntil: 'networkidle2' });
-        sleep.msleep(200);
+        await this.page.goto(this.homeUrl, { waitUntil: 'networkidle0' });
     }
 
     /**
      *  エラーページの時飛ばす
      */
     async skipIfError() {
-        const h1 = await (await this.page.$('h1')).getProperty('innerText');
-        const h1Text = await h1.jsonValue();
-        if (h1Text === 'エラー') {
+        const h1 = await this.page.$('h1');
+        if (!h1) return;
+        const h1Text = await h1.getProperty('innerText');
+        if (!h1Text) return;
+        const h1Value = await h1Text.jsonValue();
+        if (!h1Value) return;
+        if (h1Value === 'エラー') {
             sleep.msleep(300);
-            this.goHome();
+            await this.goHome();
         }
     }
 
