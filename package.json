@@ -7,8 +7,10 @@
     "author": "nothink <nothing@yasagure.jp>",
     "license": "MIT",
     "dependencies": {
+        "@types/dateformat": "^1.0.1",
         "commander": "^2.19.0",
         "config": "^2.0.1",
+        "dateformat": "^3.0.3",
         "log4js": "^3.0.5",
         "nested-object-assign": "^1.0.2",
         "puppeteer": "^1.7.0",

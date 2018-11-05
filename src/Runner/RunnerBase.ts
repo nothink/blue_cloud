@@ -45,6 +45,24 @@ export default abstract class RunnerBase {
     }
 
     /**
+     * SIGINT, SIGTERMを受け取った時にWebDriveerを閉じる
+     */
+    async terminate() {
+        this.logger.info('[TERM] Terminated.');
+        this.isTerminated = true;
+        try {
+            this.logger.info('[TERM] closing...');
+            if (this.browser) {
+                await this.browser.close();
+            }
+        } catch (e) {
+            this.logger.error(e);
+        } finally {
+            process.exit(0);
+        }
+    }
+
+    /**
      *  環境の初期化を行う
      */
     async init() {
@@ -57,6 +75,7 @@ export default abstract class RunnerBase {
             slowMo: this.conf.chrome.slowMo,
             args: this.conf.chrome.args,
         });
+        this.browser.on('disconnected', this.terminate);
 
         // クラッシュ等の対策で既存ページすべて閉じる
         (await this.browser.pages()).forEach((p) => {
@@ -103,6 +122,10 @@ export default abstract class RunnerBase {
      */
     async run() {
         this.isTerminated = false;
+        process.on('SIGHUP', this.terminate);
+        process.on('SIGINT', this.terminate);
+        process.on('SIGTERM', this.terminate);
+
         while (!this.isTerminated) {
             try {
                 await this.skipIfError();
@@ -117,11 +140,10 @@ export default abstract class RunnerBase {
     }
 
     /**
-     *  失敗時に再実行する
+     *  ページリロードする
      */
     async redo() {
         await this.page.reload({ timeout: 120, waitUntil: 'networkidle0' });
-        sleep.msleep(200);
     }
 
     /**
@@ -131,7 +153,7 @@ export default abstract class RunnerBase {
         await this.page.goto(this.conf.baseUrl, { waitUntil: 'networkidle0' });
     }
     /**
-     *  各ページごとのホームに戻る
+     *  各クラスごとのホームページに戻る
      */
     async goHome() {
         await this.page.goto(this.homeUrl, { waitUntil: 'networkidle0' });

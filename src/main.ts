@@ -18,7 +18,7 @@ logger.level = 'debug';
 async function main() {
     let runner;
     if (process.argv.length < 3) {
-        console.log('usage: -t (study, story)');
+        console.log('usage: -r (study, story)');
         return;
     }
 
@@ -31,7 +31,7 @@ async function main() {
         console.log('story runner!');
         return;
     default:
-        console.log('usage: -t (study, story)');
+        console.log('usage: -r (study, story)');
         return;
     }
 
