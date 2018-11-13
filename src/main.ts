@@ -1,6 +1,5 @@
 import * as Runner from './Runner/StudyRunner';
 
-import * as log4js from 'log4js';
 import * as program from 'commander';
 
 program
@@ -12,19 +11,15 @@ program
             /^(level|ring)$/i)
     .parse(process.argv);
 
-const logger = log4js.getLogger();
-logger.level = 'debug';
-
 async function main() {
     let runner;
     if (process.argv.length < 3) {
-        console.log('usage: -r (study, story)');
+        console.log('usage: -r (study, story) [-s (level, ring)]');
         return;
     }
 
     switch (program.runner) {
     case 'study':
-        console.log('study runner!');
         runner = new Runner.StudyRunner(program.studytarget);
         break;
     case 'story':

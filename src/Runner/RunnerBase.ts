@@ -1,6 +1,5 @@
 import * as puppeteer from 'puppeteer';
-import * as log4js from 'log4js';
-import * as sleep from 'sleep';
+import * as winston from 'winston';
 
 import * as defaultSettings from '../../default.settings.json';
 import * as settings from '../../settings.json';
@@ -15,7 +14,7 @@ export default abstract class RunnerBase {
     readonly conf = conf;           /// 設定
     browser!: puppeteer.Browser;
     page!: puppeteer.Page;
-    logger!: log4js.Logger;
+    logger!: winston.Logger;
     isTerminated: boolean;
 
     abstract homeUrl: string;
@@ -24,39 +23,42 @@ export default abstract class RunnerBase {
      *  コンストラクタ
      */
     constructor() {
-        log4js.configure({
-            appenders: {
-                console: { type: 'console' },
-                file: {
-                    type: 'dateFile',
-                    filename: './log/runner.log',
-                    pattern: '.yyyyMMdd-hhmmss',
-                    encoding: 'utf-8',
-                },
-            },
-            categories: {
-                default: {
-                    appenders: ['console', 'file'],
-                    level: 'ALL',
-                },
-            },
+        this.logger = winston.createLogger({
+            transports: [
+                new winston.transports.File({
+                    level: 'debug',
+                    handleExceptions: true,
+                    filename: 'log/runner.log',
+                    maxsize: 128 * 1024,
+                    tailable: true,
+                    format: winston.format.combine(
+                        winston.format.timestamp({
+                            format: 'YYYY/MM/DD HH:mm:ss' }),
+                        winston.format.json({ space: 4 }),
+                    )}),
+                new winston.transports.Console({
+                    level: 'warn',
+                    format: winston.format.combine(
+                        winston.format.colorize({ all: true }),
+                        winston.format.cli(),
+                    )}),
+            ],
         });
-        this.logger = log4js.getLogger('default');
     }
 
     /**
      * SIGINT, SIGTERMを受け取った時にWebDriveerを閉じる
      */
     async terminate() {
-        this.logger.info('[TERM] Terminated.');
         this.isTerminated = true;
         try {
-            this.logger.info('[TERM] closing...');
             if (this.browser) {
                 await this.browser.close();
             }
         } catch (e) {
-            this.logger.error(e);
+            console.log(e.stack);
+            this.logger.error(e.message + e.stack);
+            throw e;
         } finally {
             process.exit(0);
         }
@@ -111,9 +113,9 @@ export default abstract class RunnerBase {
 
         if (this.page.url() !== this.conf.baseUrl) {
             // それ以外へのURL遷移を例外とみなす
-            throw Error('URL mismatch: '
-                +  this.conf.baseUrl
-                + ' / ' + this.page.url());
+            throw Error(
+                `URL mismatch: ${this.conf.baseUrl} / ${this.page.url()}`,
+            );
         }
     }
 
@@ -130,10 +132,11 @@ export default abstract class RunnerBase {
             try {
                 await this.skipIfError();
                 await this.runOnce();
-                sleep.msleep(100);
+                await this.page.waitFor(100);
             } catch (e) {
+                this.logger.error(e.message + e.stack);
                 this.logger.error(e);
-                sleep.msleep(500);
+                await this.page.waitFor(300);
                 await this.redo();
             }
         }
@@ -143,34 +146,51 @@ export default abstract class RunnerBase {
      *  ページリロードする
      */
     async redo() {
-        await this.page.reload({ timeout: 120, waitUntil: 'networkidle0' });
+        let response: puppeteer.Response;
+        while (!response) {
+            try {
+                response = await this.page.reload({
+                    timeout: 2000,
+                    waitUntil: 'networkidle2' });
+            } catch {
+                response = null;
+            } finally {
+                if (!response || !response.ok()) {
+                    response = null;
+                }
+                await this.page.waitFor(500);
+            }
+        }
     }
 
     /**
      *  ベースURLに戻る
      */
     async goBase() {
-        await this.page.goto(this.conf.baseUrl, { waitUntil: 'networkidle0' });
+        await this.page.goto(this.conf.baseUrl, { waitUntil: 'networkidle2' });
     }
     /**
      *  各クラスごとのホームページに戻る
      */
     async goHome() {
-        await this.page.goto(this.homeUrl, { waitUntil: 'networkidle0' });
+        await this.page.goto(this.homeUrl, { waitUntil: 'networkidle2' });
     }
 
     /**
      *  エラーページの時飛ばす
      */
     async skipIfError() {
-        const h1 = await this.page.$('h1');
-        if (!h1) return;
-        const h1Text = await h1.getProperty('innerText');
-        if (!h1Text) return;
-        const h1Value = await h1Text.jsonValue();
-        if (!h1Value) return;
-        if (h1Value === 'エラー') {
-            sleep.msleep(300);
+        const h1Sel = 'h1';
+        try {
+            await this.page.waitForSelector(h1Sel, { timeout: 800 });
+        } catch {
+            return;
+        }
+        const heading = await this.page.$eval(h1Sel, (h1: Element) => {
+            return h1.textContent;
+        });
+        if (heading === 'エラー') {
+            await this.page.waitFor(300);
             await this.goHome();
         }
     }

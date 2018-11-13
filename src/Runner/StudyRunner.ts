@@ -2,7 +2,8 @@ import RunnerBase from './RunnerBase';
 
 import { ElementHandle } from 'puppeteer';
 import * as url from 'url';
-import * as dateformat from 'dateformat';
+import * as moment from 'moment';
+import * as readline from 'readline';
 
 import * as studyList from '../../studylist.json';
 
@@ -22,11 +23,11 @@ export class StudyRunner extends RunnerBase {
         super();
 
         // テスト勉強ホーム
-        this.homeUrl = this.conf.testHomeUrl;
+        this.homeUrl = this.conf.studyHomeUrl;
 
         this.studyTarget = studyTarget || 'level';
         if (['level', 'ring'].indexOf(this.studyTarget) === -1) {
-            throw Error('Unknown Target: ' + this.studyTarget);
+            throw Error(`Unknown Target: ${this.studyTarget}`);
         }
 
         this.rank = this.conf.study.testRank || 1;
@@ -134,10 +135,11 @@ export class StudyRunner extends RunnerBase {
      */
     async startQuest() {
         this.logger.debug('Start quest.');
+        await this.page.waitFor(1000);
         // 開始ボタンを押す
-        const btnX = '/html/body/div[4]/div/div/div/div/div/section[2]/div/a';
-        await this.page.waitForXPath(btnX);
-        const button  = (await this.page.$x(btnX))[0];
+        const btnSel = '.btn.btnPrimary.jsTouchActive';
+        await this.page.waitForSelector(btnSel);
+        const button  = await this.page.$(btnSel);
         await button.click();
     }
 
@@ -147,12 +149,12 @@ export class StudyRunner extends RunnerBase {
     async selectQuest() {
         this.logger.debug('Select quest.');
 
-        const pointSel = '.cell.vTop.textRight > div > span:nth-child(1)';
-        await this.page.waitForSelector(pointSel);
+        const pointSel = 'div.cell.vTop.textRight > div > span:nth-child(1)';
+        await this.page.waitForSelector(pointSel, { timeout: 3000 });
         const point = await this.page.$eval(pointSel, (item: Element) => {
             return Number(item.textContent);
         });
-        this.logger.debug(point + ' / 100');
+        this.logger.debug(`${point} / 100`);
 
         let tab: ElementHandle;
         let infoKey: string;
@@ -165,6 +167,7 @@ export class StudyRunner extends RunnerBase {
         } else if (this.studyTarget === 'ring') {
             tab = tabs[1];
             await tab.click();
+            await this.page.waitFor(300);
 
             const divSel = 'div.bgCream.pt5.ph5.pb10 > div:nth-child(2) > div';
             const sphere = await this.page.$$eval(divSel, (divs: Element[]) => {
@@ -185,44 +188,52 @@ export class StudyRunner extends RunnerBase {
             infoKey = sphere + this.rank.toString();
         }
         this.studyInfo = studyList[infoKey];
-        this.logger.debug('next: ' + this.studyInfo['name']);
+        this.logger.debug(`next: ${this.studyInfo['name']}`);
 
         // ダイアログが表示されていたら飛ばす
         const isContinue = await this.isDisplayedDialog();
         if (isContinue) {
-            await this.page.waitForNavigation();
+            this.logger.debug('is Continue.');
             return;
         }
 
-        // 残りポイント不足の時は待機してテスト勉強トップに戻る
+        // 残りポイント不足の時は待機してトップに戻る
         if (!this.usingSpark && (point < this.studyInfo['cost'])) {
+            await this.goBase();
+            await this.page.waitFor(1000);
             await this.takeBreak(point);
-            await this.goHome();
             return;
         }
 
         // 残りポイントをSTDOUTに出す
-        process.stdout.write('\x033[2K\x033[G');
-        process.stdout.write('\r[ ' + point + ' / 100 ]');
-        process.stdout.write(' | cost: ' + this.studyInfo['cost']);
+        readline.clearLine(process.stdout, 0);
+        readline.cursorTo(process.stdout, 0);
+        process.stdout.write(`\r[ ${point} / 100 ]`);
+        process.stdout.write(` | cost: ${this.studyInfo['cost']}`);
 
         // トグルが開いていない場合は開く
-        const idx = 'list' + this.studyInfo['type'] + this.studyInfo['index'];
-        const groupStr = '[data-group="' + idx + '"]';
-        const closedSel = 'div.floatRight.sprite1_triangle' + groupStr;
-        const openSel = 'div.floatRight.sprite1_triangle.rotate180' + groupStr;
+        const idx = `list${this.studyInfo['type']}${this.studyInfo['index']}`;
+        const groupStr = `[data-group="${idx}"]`;
+        const closedSel = `div.floatRight.sprite1_triangle${groupStr}`;
+        const openSel = `div.floatRight.sprite1_triangle.rotate180${groupStr}`;
         try {
-            await this.page.waitForSelector(openSel, { timeout: 200 });
+            await this.page.waitForSelector(openSel, { timeout: 1000 });
         } catch {
-            await this.page.waitForSelector(closedSel, { timeout: 200 });
+            await this.page.waitForSelector(closedSel, { timeout: 1000 });
             await this.page.click(closedSel);
+            await this.page.waitForSelector(openSel, { timeout: 1000 });
         }
 
         // クエストを選択（およびクリック）
-        const buttonSel = '[data-state*="' + this.studyInfo['id'] + '"]';
+        const buttonSel = `[data-state*="${this.studyInfo['id']}"]`;
         await this.page.waitForSelector(buttonSel);
         await this.page.waitFor(300);
         await this.page.click(buttonSel);
+
+        if (this.usingSpark) {
+            this.logger.debug('using spark.');
+            await this.useSpark();
+        }
     }
 
     /**
@@ -286,13 +297,14 @@ export class StudyRunner extends RunnerBase {
         // デッキタブの選択
         const deckSel = 'section[class="commonTab"] > ul > '
                         + 'li[data-group="decks"]';
-        await this.page.waitForSelector(deckSel);
+        await this.page.waitForSelector(deckSel, { timeout: 3000 });
         const decks = await this.page.$$(deckSel);
         const deckCnt = this.studyInfo['deck'] - 1;
         await decks[deckCnt].click();
 
         // デッキエリアのボタンを探してクリック
         const areaSel = 'div[data-group="decks"]';
+        await this.page.waitForSelector(areaSel, { timeout: 3000 });
         const areas = await this.page.$$(areaSel);
         const button = await areas[deckCnt].$('.btnPrimary');
         await button.click();
@@ -304,32 +316,33 @@ export class StudyRunner extends RunnerBase {
     async battle() {
         this.logger.debug('battle.');
 
+        await this.page.waitFor(800);
+
         // コンテニューの時は飛ばす
-        this.passIfContinue();
+        await this.passIfContinue();
 
         try {
             while (this.phase === 'battle') {
                 const canvas = await this.page.waitForSelector('#canvas');
-                await this.page.waitFor(3200); // 初期アニメーション
+                await this.page.waitFor(2200); // 初期アニメーション
                 await canvas.click();
-                await this.page.waitFor(6300); // ローディングアニメーション（スーパーモヤモヤ含む）
+                await this.page.waitFor(5300); // ローディングアニメーション（スーパーモヤモヤ含む）
 
                 if (this.usingSkill) {
-                    // TODO: self.useSkills();
+                    // TODO: this.useSkills();
                 }
                 // クリック後、ランダムな時間で休む
-                this.clickOnce();
-                await this.page.waitFor(2000);
+                await this.clickOnce();
+                await this.page.waitFor(1000);
                 // sleep.sleep(3.14 + 2.718 * Math.random());
                 // リロード
-                this.redo();
+                await this.redo();
             }
         } catch (e) {
             this.logger.error(e);
-            this.redo();
         } finally {
             // 完了後リロード
-            this.redo();
+            await this.redo();
         }
     }
 
@@ -338,9 +351,7 @@ export class StudyRunner extends RunnerBase {
      */
     async checkResult() {
         this.logger.debug('Check Result.');
-
-        await this.page.waitFor(10000);
-        throw Error('not implemented.');
+        await this.page.goto('https://vcard.ameba.jp/s#study/quest/select');
     }
 
     /* ----------------------------- utilities ----------------------------- */
@@ -351,15 +362,18 @@ export class StudyRunner extends RunnerBase {
      */
     async takeBreak(current) {
         const delta = 100 - current;
-        const next = performance.now() + (delta * 60 * 1000);
-        let left = next - performance.now();
+        const next = moment().add(delta * 60, 'second');
+        let left = next.diff(moment());
         while (left > 0) {
-            const leftStr = dateformat(left, 'H:MM:ss.l');
-            process.stdout.write('\r - remain: ' + leftStr);
-            await this.page.waitFor(50);
-            left = next - performance.now();
+            const leftStr = moment(left).utc().format('H:mm:ss');
+            const nextStr = next.format('MM/DD HH:mm:ss');
+            process.stdout.write(`\r[next: ${nextStr}]: `
+                + `${leftStr} remaining...`);
+            await this.page.waitFor(200);
+            left = next.diff(moment());
         }
-        process.stdout.write('\x033[2K\x033[G');
+        readline.clearLine(process.stdout, 0);
+        readline.cursorTo(process.stdout, 0);
         process.stdout.write('Reboot...');
 
         while (true) {
@@ -380,19 +394,17 @@ export class StudyRunner extends RunnerBase {
         const buttonSel = '.js_attackBtn.block:not([disabled])';
         await this.page.waitForSelector(buttonSel, { timeout: 10000 });
         const button = await this.page.$(buttonSel);
-        button.click();
+        await button.click();
     }
 
     /**
-     *  中断などのダイアログが表示されているかどうかをチェックして
+     *  中断ダイアログが表示されているかどうかをチェックして
      *  もし表示されていたらダイアログを飛ばす
-     *  TODO : ちなみに各ダイアログはpopupWindowのクラスごとに種別がある
-     *         集中P不足:「回復する」(popupWindow block js_popupUpdateAp)
      */
     async isDisplayedDialog(): Promise<boolean> {
         try {
             const popupSel = '.popupWindow';
-            await this.page.waitForSelector(popupSel, { timeout: 300 });
+            await this.page.waitForSelector(popupSel, { timeout: 3000 });
             const popup = await this.page.$(popupSel);
             if (!popup) {
                 return Promise.resolve(false);
@@ -407,7 +419,52 @@ export class StudyRunner extends RunnerBase {
             await button.click();
             return Promise.resolve(true);
         }
+        const resultSel = '.btn.btnPrimary[data-href="#study/battle/result"]';
+        const resultButton = await this.page.$(resultSel);
+        if (resultButton) {
+            try {
+                await resultButton.click();
+            } catch {
+                return Promise.resolve(true);
+            }
+            return Promise.resolve(true);
+        }
         return Promise.resolve(false);
+    }
+
+    /**
+     *  炭酸補充ダイアログが表示されているかどうかをチェックして
+     *  もし表示されていたらダイアログを飛ばす
+     */
+    async useSpark() {
+        try {
+            const popupSel = '.js_output.absolute.block';
+            await this.page.waitForSelector(popupSel, { timeout: 1000 });
+            const popup = await this.page.$(popupSel);
+            if (!popup) {
+                return;
+            }
+        } catch {
+            // セレクタが存在しない時は正常
+            return;
+        }
+
+        const button = await this.page.$('.js_restart.btn');
+        if (button) {
+            await button.click();
+            return Promise.resolve(true);
+        }
+        const healSel = '.btn.btnPrimary.js_updateAp';
+        const healButton = await this.page.$(healSel);
+        if (healButton) {
+            try {
+                await healButton.click();
+            } catch {
+                return;
+            }
+            return;
+        }
+        return;
     }
 
     /**
@@ -416,9 +473,8 @@ export class StudyRunner extends RunnerBase {
     async passIfContinue() {
         const popSel = '.js_outPutPopupContinueMenu.homeMenu.z5.none.block';
         try {
-            await this.page.waitForSelector(popSel, { timeout: 1000 });
+            await this.page.waitForSelector(popSel, { timeout: 2000 });
             const popup = await this.page.$(popSel);
-
             // コンテニューボタン側をクリック
             const button = await popup.$('.js_continueBtn');
             if (button) {

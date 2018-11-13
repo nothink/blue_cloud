@@ -2,31 +2,25 @@
     "name": "blue_cloud",
     "version": "0.0.1",
     "description": "Rei Shinomiya",
-    "main": "index.js",
+    "main": "main.js",
     "repository": "git@github.com:nothink/blue_cloud.git",
     "author": "nothink <nothing@yasagure.jp>",
     "license": "MIT",
     "dependencies": {
-        "@types/dateformat": "^1.0.1",
         "commander": "^2.19.0",
-        "config": "^2.0.1",
-        "dateformat": "^3.0.3",
-        "log4js": "^3.0.5",
-        "nested-object-assign": "^1.0.2",
-        "puppeteer": "^1.7.0",
-        "sleep": "^5.2.3"
+        "moment": "^2.22.2",
+        "puppeteer": "^1.10.0",
+        "readline": "^1.3.0",
+        "winston": "^3.1.0"
     },
     "devDependencies": {
-        "@types/config": "^0.0.34",
-        "@types/log4js": "^2.3.5",
-        "@types/puppeteer": "^1.6.0",
-        "@types/sleep": "^0.0.7",
+        "@types/puppeteer": "^1.9.1",
         "ts-node": "^7.0.1",
         "tslint": "^5.11.0",
         "tslint-config-airbnb": "^5.10.0",
         "tsutils": "^3.0.0",
         "typedoc": "^0.12.0",
-        "typescript": "^3.0.1"
+        "typescript": "^3.1.0"
     },
     "scripts": {
         "build": "yarn clean && yarn lint && yarn compile",

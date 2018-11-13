@@ -1,6 +1,7 @@
 {
     "baseUrl": "https://vcard.ameba.jp/",
-    "testHomeUrl": "https://vcard.ameba.jp/s#study/top",
+    "studyHomeUrl": "https://vcard.ameba.jp/s#study/top",
+    "storyHomeUrlBase": "https://vcard.ameba.jp/story/quest",
     "chrome": {
         "executablePath": null,
         "profilePath": "./Profile",

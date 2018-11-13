@@ -32,7 +32,8 @@ declare module '*settings.json' {
 
     interface Setting {
         baseUrl: string;
-        testHomeUrl: string;
+        studyHomeUrl: string;
+        storyHomeUrlBase: string;
         chrome: Chrome;
         viewport: Viewport;
         account: Account;
