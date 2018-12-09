@@ -26,7 +26,7 @@ export default abstract class RunnerBase {
         this.logger = winston.createLogger({
             transports: [
                 new winston.transports.File({
-                    level: 'debug',
+                    level: 'info',
                     handleExceptions: true,
                     filename: 'log/runner.log',
                     maxsize: 128 * 1024,

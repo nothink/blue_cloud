@@ -35,7 +35,6 @@ async function main() {
         await runner.run();
         await runner.close();
     }
-
 }
 
 main();
