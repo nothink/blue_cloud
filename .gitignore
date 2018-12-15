@@ -62,8 +62,9 @@ typings/
 
 .DS_Store
 
-config/
 dst/
 log/
 Profile*/
-settings.json
+
+config/gf.json
+config/nashino.json

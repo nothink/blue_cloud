@@ -13,7 +13,7 @@ export class StoryRunner extends RunnerBase {
         super();
 
         // テスト勉強ホーム
-        this.homeUrl = this.conf.storyHomeUrlBase;
+        this.homeUrl = this.config.get('storyHomeUrlBase');
     }
 
     /**

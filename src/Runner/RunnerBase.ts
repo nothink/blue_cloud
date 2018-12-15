@@ -1,22 +1,18 @@
 import * as puppeteer from 'puppeteer';
+import * as config from 'config';
 import * as winston from 'winston';
-
-import * as defaultSettings from '../../default.settings.json';
-import * as settings from '../../settings.json';
-
-// merge settings.json to the default settings.
-const conf = Object.assign(defaultSettings, settings);
 
 /**
  * Puppeteerを用いたランナースクリプトのベースクラス
  */
 export default abstract class RunnerBase {
-    readonly conf = conf;           /// 設定
     browser!: puppeteer.Browser;
     page!: puppeteer.Page;
     logger!: winston.Logger;
     isTerminated: boolean;
+    config: config.IConfig;
 
+    baseUrl!: string;
     abstract homeUrl: string;
 
     /**
@@ -44,6 +40,8 @@ export default abstract class RunnerBase {
                     )}),
             ],
         });
+        this.config = config;
+        this.baseUrl = this.config.get('baseUrl');
     }
 
     /**
@@ -70,12 +68,12 @@ export default abstract class RunnerBase {
     async init() {
         this.logger.info('launching browser...');
         this.browser = await puppeteer.launch({
-            headless: this.conf.chrome.headless,
-            devtools: this.conf.chrome.devtools,
-            userDataDir: this.conf.chrome.profilePath,
-            executablePath: this.conf.chrome.executablePath,
-            slowMo: this.conf.chrome.slowMo,
-            args: this.conf.chrome.args,
+            headless: this.config.get('chrome.headless'),
+            devtools: this.config.get('chrome.devtools'),
+            userDataDir: this.config.get('chrome.profilePath'),
+            executablePath: this.config.get('chrome.executablePath'),
+            slowMo: this.config.get('chrome.slowMo'),
+            args: this.config.get('chrome.args'),
         });
         this.browser.on('disconnected', this.terminate);
 
@@ -85,9 +83,9 @@ export default abstract class RunnerBase {
         });
 
         this.page = await this.browser.newPage();
-        await this.page.setViewport(this.conf.viewport);
+        await this.page.setViewport(this.config.get('viewport'));
 
-        await this.page.goto(this.conf.baseUrl, { waitUntil: 'networkidle0' });
+        await this.page.goto(this.baseUrl, { waitUntil: 'networkidle0' });
 
         if (this.page.url().includes('dauth.user.ameba.jp')) {
             // dauth.user.ameba.jpへとURL遷移したらログインページと認識
@@ -97,11 +95,11 @@ export default abstract class RunnerBase {
 
             await this.page.type(
                 'input[name="accountId"]',
-                settings.account.username,
+                this.config.get('account.username'),
             );
             await this.page.type(
                 'input[name="password"]',
-                settings.account.password,
+                this.config.get('account.password'),
             );
 
             this.page.click(
@@ -111,10 +109,10 @@ export default abstract class RunnerBase {
             return;
         }
 
-        if (this.page.url() !== this.conf.baseUrl) {
+        if (this.page.url() !== this.baseUrl) {
             // それ以外へのURL遷移を例外とみなす
             throw Error(
-                `URL mismatch: ${this.conf.baseUrl} / ${this.page.url()}`,
+                `URL mismatch: ${this.baseUrl} / ${this.page.url()}`,
             );
         }
     }
@@ -167,7 +165,7 @@ export default abstract class RunnerBase {
      *  ベースURLに戻る
      */
     async goBase() {
-        await this.page.goto(this.conf.baseUrl, { waitUntil: 'networkidle2' });
+        await this.page.goto(this.baseUrl, { waitUntil: 'networkidle2' });
     }
     /**
      *  各クラスごとのホームページに戻る
@@ -206,5 +204,5 @@ export default abstract class RunnerBase {
     /**
      *  ループ実行の一単位 (abstract)
      */
-    async abstract runOnce();
+    async abstract runOnce(): Promise<void>;
 }

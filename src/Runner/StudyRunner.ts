@@ -23,17 +23,18 @@ export class StudyRunner extends RunnerBase {
         super();
 
         // テスト勉強ホーム
-        this.homeUrl = this.conf.studyHomeUrl;
+        console.log(this.config.get('studyHomeUrl'));
+        this.homeUrl = this.config.get('studyHomeUrl');
 
         this.studyTarget = studyTarget || 'level';
         if (['level', 'ring'].indexOf(this.studyTarget) === -1) {
             throw Error(`Unknown Target: ${this.studyTarget}`);
         }
 
-        this.rank = this.conf.study.testRank || 1;
+        this.rank = this.config.get('study.testRank') || 1;
 
-        this.usingSpark = this.conf.study.usingSpark;
-        this.usingSkill = this.conf.study.usingSkill;
+        this.usingSpark = this.config.get('study.usingSpark');
+        this.usingSkill = this.config.get('study.usingSkill');
     }
 
     /**
@@ -360,7 +361,7 @@ export class StudyRunner extends RunnerBase {
      *  回復量は60秒で1ポイントなので、最大100ポイントへの差分だけ待機。
      *  @param current 現在のポイント
      */
-    async takeBreak(current) {
+    async takeBreak(current: number) {
         const delta = 100 - current;
         const next = moment().add(delta * 60, 'second');
         let left = next.diff(moment());
