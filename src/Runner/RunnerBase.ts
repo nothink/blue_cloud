@@ -33,7 +33,7 @@ export default abstract class RunnerBase {
                         winston.format.json({ space: 4 }),
                     )}),
                 new winston.transports.Console({
-                    level: 'warn',
+                    level: 'error',
                     format: winston.format.combine(
                         winston.format.colorize({ all: true }),
                         winston.format.cli(),
@@ -54,7 +54,6 @@ export default abstract class RunnerBase {
                 await this.browser.close();
             }
         } catch (e) {
-            console.log(e.stack);
             this.logger.error(e.message + e.stack);
             throw e;
         } finally {
@@ -132,8 +131,7 @@ export default abstract class RunnerBase {
                 await this.runOnce();
                 await this.page.waitFor(100);
             } catch (e) {
-                this.logger.error(e.message + e.stack);
-                this.logger.error(e);
+                this.logger.warn(e.stack);
                 await this.page.waitFor(300);
                 await this.redo();
             }
@@ -181,15 +179,15 @@ export default abstract class RunnerBase {
         const h1Sel = 'h1';
         try {
             await this.page.waitForSelector(h1Sel, { timeout: 800 });
+            const heading = await this.page.$eval(h1Sel, (h1: Element) => {
+                return h1.textContent;
+            });
+            if (heading === 'エラー') {
+                await this.page.waitFor(300);
+                await this.goHome();
+            }
         } catch {
             return;
-        }
-        const heading = await this.page.$eval(h1Sel, (h1: Element) => {
-            return h1.textContent;
-        });
-        if (heading === 'エラー') {
-            await this.page.waitFor(300);
-            await this.goHome();
         }
     }
 

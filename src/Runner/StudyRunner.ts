@@ -23,7 +23,6 @@ export class StudyRunner extends RunnerBase {
         super();
 
         // テスト勉強ホーム
-        console.log(this.config.get('studyHomeUrl'));
         this.homeUrl = this.config.get('studyHomeUrl');
 
         this.studyTarget = studyTarget || 'level';
