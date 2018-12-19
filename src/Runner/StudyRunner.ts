@@ -316,7 +316,7 @@ export class StudyRunner extends RunnerBase {
     async battle() {
         this.logger.debug('battle.');
 
-        await this.page.waitFor(800);
+        await this.page.waitFor(600);
 
         // コンテニューの時は飛ばす
         await this.passIfContinue();
@@ -324,16 +324,21 @@ export class StudyRunner extends RunnerBase {
         try {
             while (this.phase === 'battle') {
                 const canvas = await this.page.waitForSelector('#canvas');
-                await this.page.waitFor(2200); // 初期アニメーション
+                await this.page.waitFor(1600); // 初期アニメーション
                 await canvas.click();
-                await this.page.waitFor(5300); // ローディングアニメーション（スーパーモヤモヤ含む）
+                await this.page.waitFor(4300); // ローディングアニメーション（スーパーモヤモヤ含む）
 
                 if (this.usingSkill) {
-                    // TODO: this.useSkills();
+                    // スキル必須の場合はスキル利用
+                    await this.useSkills();
                 }
-                // クリック後、ランダムな時間で休む
+                // クリック、その後に休む
                 await this.clickOnce();
-                await this.page.waitFor(1000);
+                // if (this.usingSkill) {
+                //     // スキル利用
+                //     await this.redo();
+                // }
+                await this.page.waitFor(600);
                 // sleep.sleep(3.14 + 2.718 * Math.random());
                 // リロード
                 await this.redo();
@@ -486,5 +491,72 @@ export class StudyRunner extends RunnerBase {
             // セレクタが存在しないのが正常
             return;
         }
+    }
+
+    async useSkills() {
+        const round = await this.page.evaluate('INIT_JSON.enemy.roundNum');
+        if (round < 5) {
+            // 5ラウンドミッションの最終ラウンド以外は使う必要はない
+            return;
+        }
+
+        let count: number = 0;
+
+        while (count !== undefined) {
+            try {
+                await this.page.waitFor(1900);
+                count = await this.useSkillSomeone();
+            } catch (e) {
+                // スキルが無い場合はここに来るはず
+                console.log(e.stack);
+            }
+            await this.redo();
+            const canvas = await this.page.waitForSelector('#canvas');
+            await this.page.waitFor(1600); // 初期アニメーション
+            await canvas.click();
+            await this.page.waitFor(4300); // ローディングアニメーション（スーパーモヤモヤ含む）
+        }
+    }
+
+    async useSkillSomeone(): Promise<number> {
+        const canvas = await this.page.$('#canvas');
+        const canvasBox = await canvas.boundingBox();
+        const cards = await this.page.evaluate(
+            'window.MainCtl.module.iconArea.cards');
+        for (let y = 0; y < 3; y += 1) {
+            for (let x = 0; x < 3; x += 1) {
+                const count = y * 3 + x;
+                const skill = cards[count]['activeSkill'];
+                if (!skill) {
+                    continue;
+                }
+                const remain = cards[count]['activeSkill']['remainTurn'];
+                const target = cards[count]['activeSkill']['target'];
+                if (remain === 0) {
+                    // 残り時間なしの場合
+                    const mouse = this.page.mouse;
+                    // 座標をクリック
+                    await mouse.click(
+                        canvasBox.x + 40 + (65 * x),
+                        canvasBox.y + 240 + (65 * y));
+                    await this.page.waitFor(1900);
+                    // 発動ボタンをクリック
+                    await mouse.click(
+                        canvasBox.x + 210,
+                        canvasBox.y + 370);
+                    await this.page.waitFor(1900);
+                    if (target === 1) {
+                        // ターゲット単体のときはもう一度クリック
+                        await mouse.click(
+                            canvasBox.x + 210,
+                            canvasBox.y + 370);
+                        await this.page.waitFor(1900);
+                    }
+                    // 発動したスキルの番号を返す
+                    return Promise.resolve(count);
+                }
+            }
+        }
+        return Promise.resolve(undefined);
     }
 }

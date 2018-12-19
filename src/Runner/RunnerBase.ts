@@ -45,9 +45,9 @@ export default abstract class RunnerBase {
     }
 
     /**
-     * SIGINT, SIGTERMを受け取った時にWebDriveerを閉じる
+     * SIGINT, SIGTERMを受け取った時にブラウザオブジェクトを閉じて完了する
      */
-    async terminate() {
+    async terminate(): Promise<void> {
         this.isTerminated = true;
         try {
             if (this.browser) {
@@ -64,7 +64,7 @@ export default abstract class RunnerBase {
     /**
      *  環境の初期化を行う
      */
-    async init() {
+    async init(): Promise<void> {
         this.logger.info('launching browser...');
         this.browser = await puppeteer.launch({
             headless: this.config.get('chrome.headless'),
@@ -119,7 +119,7 @@ export default abstract class RunnerBase {
     /**
      *  Runner全体を実行し、TERMシグナル等が送られるまで実行する
      */
-    async run() {
+    async run(): Promise<void> {
         this.isTerminated = false;
         process.on('SIGHUP', this.terminate);
         process.on('SIGINT', this.terminate);
@@ -141,7 +141,7 @@ export default abstract class RunnerBase {
     /**
      *  ページリロードする
      */
-    async redo() {
+    async redo(): Promise<void> {
         let response: puppeteer.Response;
         while (!response) {
             try {
@@ -162,20 +162,20 @@ export default abstract class RunnerBase {
     /**
      *  ベースURLに戻る
      */
-    async goBase() {
+    async goBase(): Promise<void> {
         await this.page.goto(this.baseUrl, { waitUntil: 'networkidle2' });
     }
     /**
      *  各クラスごとのホームページに戻る
      */
-    async goHome() {
+    async goHome(): Promise<void> {
         await this.page.goto(this.homeUrl, { waitUntil: 'networkidle2' });
     }
 
     /**
      *  エラーページの時飛ばす
      */
-    async skipIfError() {
+    async skipIfError(): Promise<void> {
         const h1Sel = 'h1';
         try {
             await this.page.waitForSelector(h1Sel, { timeout: 800 });
@@ -194,7 +194,7 @@ export default abstract class RunnerBase {
     /**
      *  ブラウザを閉じて終了処理を行う
      */
-    async close() {
+    async close(): Promise<void> {
         this.logger.info('closing browser...');
         await this.browser.close();
     }

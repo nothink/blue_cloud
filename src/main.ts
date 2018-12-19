@@ -1,4 +1,5 @@
-import * as Runner from './Runner/StudyRunner';
+import RunnerBase from './Runner/RunnerBase';
+import * as StudyRunner from './Runner/StudyRunner';
 
 import * as program from 'commander';
 
@@ -12,7 +13,7 @@ program
     .parse(process.argv);
 
 async function main() {
-    let runner;
+    let runner: RunnerBase;
     if (process.argv.length < 3) {
         console.log('usage: -r (study, story) [-s (level, ring)]');
         return;
@@ -20,7 +21,7 @@ async function main() {
 
     switch (program.runner) {
     case 'study':
-        runner = new Runner.StudyRunner(program.studytarget);
+        runner = new StudyRunner.StudyRunner(program.studytarget);
         break;
     case 'story':
         console.log('story runner!');
