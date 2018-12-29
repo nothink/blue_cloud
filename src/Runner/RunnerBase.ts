@@ -107,13 +107,6 @@ export default abstract class RunnerBase {
             await this.page.waitForNavigation();
             return;
         }
-
-        if (this.page.url() !== this.baseUrl) {
-            // それ以外へのURL遷移を例外とみなす
-            throw Error(
-                `URL mismatch: ${this.baseUrl} / ${this.page.url()}`,
-            );
-        }
     }
 
     /**

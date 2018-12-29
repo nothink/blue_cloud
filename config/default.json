@@ -22,5 +22,10 @@
         "testRank": 1,
         "usingSpark": false,
         "usingSkill": false
+    },
+    "story": {
+        "eventId": 46,
+        "questId": 1,
+        "usingSpecial": true
     }
 }

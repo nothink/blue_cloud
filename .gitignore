@@ -66,5 +66,5 @@ dst/
 log/
 Profile*/
 
-config/gf.json
-config/nashino.json
+config/*
+!config/default.json

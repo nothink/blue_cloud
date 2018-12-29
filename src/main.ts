@@ -1,5 +1,6 @@
 import RunnerBase from './Runner/RunnerBase';
 import * as StudyRunner from './Runner/StudyRunner';
+import * as StoryRunner from './Runner/StoryRunner';
 
 import * as program from 'commander';
 
@@ -24,8 +25,8 @@ async function main() {
         runner = new StudyRunner.StudyRunner(program.studytarget);
         break;
     case 'story':
-        console.log('story runner!');
-        return;
+        runner = new StoryRunner.StoryRunner();
+        break;
     default:
         console.log('usage: -r (study, story)');
         return;

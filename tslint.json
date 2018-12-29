@@ -3,7 +3,7 @@
     "rules": {
         "ter-indent": [true, 4],
         "indent": [true, "spaces", 4],
-        "max-line-length": [true, 80],
+        "max-line-length": [true, 800],
         "object-shorthand-properties-first": true,
         "radix": true,
         "ter-arrow-parens": [true, "always"]
