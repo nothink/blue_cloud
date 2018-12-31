@@ -157,18 +157,21 @@ export class StoryRunner extends RunnerBase {
         if (!popup) {
             return;
         }
-        const button = await this.page.$('#outStamina a.btnShadow');
-        const title = await this.page.evaluate((item: Element) => { return item.textContent; }, button);
-        if (title === '使用する') {
-            const buttonBox = await button.boundingBox();
-            // 座標をクリック
-            const mouse = await this.page.mouse;
-            await mouse.click(buttonBox.x + 80, buttonBox.y + 20);
-            const confirm = await this.page.$('#confirmPopOkBtn');
-            const confirmBox = await confirm.boundingBox();
-            await mouse.click(confirmBox.x + 80, confirmBox.y + 20);
+        const buttons = await this.page.$$('#outStamina a.btnShadow');
+        while (buttons.length > 0) {
+            const button = buttons.shift();
+            const title = await this.page.evaluate((item: Element) => { return item.textContent; }, button);
+            if (title === '使用する') {
+                const buttonBox = await button.boundingBox();
+                // 座標をクリック
+                const mouse = await this.page.mouse;
+                await mouse.click(buttonBox.x + 80, buttonBox.y + 20);
+                const confirm = await this.page.$('#confirmPopOkBtn');
+                const confirmBox = await confirm.boundingBox();
+                await mouse.click(confirmBox.x + 80, confirmBox.y + 20);
+                return;
+            }
         }
-
         return;
     }
 }
