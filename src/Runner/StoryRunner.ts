@@ -1,6 +1,5 @@
 import RunnerBase from './RunnerBase';
 
-import { ElementHandle } from 'puppeteer';
 import * as url from 'url';
 
 export class StoryRunner extends RunnerBase {
@@ -19,7 +18,7 @@ export class StoryRunner extends RunnerBase {
         this.questId = this.config.get('story.questId');
         this.usingSpecial = this.config.get('story.usingSpecial');
 
-        // テスト勉強ホーム
+        // ふむふむホーム（ふむふむの基準ページは、イベントIDとクエストIDに依存する）
         this.homeUrl = `${this.config.get('storyHomeUrlBase')}?eventId=${this.eventId}&questId=${this.questId}`;
     }
 
@@ -35,7 +34,7 @@ export class StoryRunner extends RunnerBase {
      */
     get phase(): string {
         const current = url.parse(this.page.url());
-        if (!current || !current.path || current.path === '/') {
+        if (!current || !current.pathname || current.pathname === '/') {
             // 初回、ないしは該当なしの場合は空ステータス
             return '';
         }

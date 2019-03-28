@@ -57,11 +57,11 @@ export class StudyRunner extends RunnerBase {
      */
     get phase(): string {
         const current = url.parse(this.page.url());
-        if (!current || !current.path) {
+        if (!current || !current.pathname) {
             // 初回、ないしは該当なしの場合は空ステータス
             return '';
         }
-        if (current.path === '/study/battle') {
+        if (current.pathname === '/study/battle') {
             // battleのみfragmentが存在しない特殊なフォーマット
             return 'battle';
         }

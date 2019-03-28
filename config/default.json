@@ -2,6 +2,7 @@
     "baseUrl": "https://vcard.ameba.jp/",
     "studyHomeUrl": "https://vcard.ameba.jp/s#study/top",
     "storyHomeUrlBase": "https://vcard.ameba.jp/story/quest",
+    "championshipHomeUrl": "https://vcard.ameba.jp/championship/quest/detail",
     "chrome": {
         "executablePath": null,
         "profilePath": "./Profile",
@@ -24,8 +25,11 @@
         "usingSkill": false
     },
     "story": {
-        "eventId": 46,
+        "eventId": 47,
         "questId": 1,
-        "usingSpecial": true
+        "usingSpecial": false
+    },
+    "championship": {
+        "usingCandy": false
     }
 }
