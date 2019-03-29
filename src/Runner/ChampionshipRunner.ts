@@ -4,6 +4,9 @@ import * as fs from 'fs';
 import { ElementHandle } from 'puppeteer';
 import * as url from 'url';
 
+/**
+ *  カリスマ決定戦用のランナースクリプト
+ */
 export class ChampionshipRunner extends RunnerBase {
     homeUrl: string;
     usingCandy: boolean;
@@ -68,54 +71,34 @@ export class ChampionshipRunner extends RunnerBase {
 
     /**
      *  ループ実行の一単位 (override)
+     *  @returns 空のpromiseオブジェクト
      */
-    async runOnce() {
+    async runOnce(): Promise<void> {
         // Phaseで切り替える
         // console.log(this.phase);
         switch (this.phase) {
         case 'quest':
             await this.walk();
             break;
-
-        case 'user':
-            await this.userBattle();
-            break;
-
-        case 'boss':
-            await this.bossBattle();
-            break;
-
-        case 'battle-animation':
-            await this.skipAnimation();
-            break;
-
-        case 'result':
-            await this.skipResult();
-            break;
-
         case 'encount-animation':
             await this.skipEncount();
             break;
-
+        case 'user':
+            await this.userBattle();
+            break;
+        case 'boss':
+            await this.bossBattle();
+            break;
+        case 'battle-animation':
+            await this.skipAnimation();
+            break;
+        case 'result':
+            await this.skipResult();
+            break;
         default:
             await this.goHome();
             this.logger.debug('[ Go championship home ]');
-            await this.startChampionship();
             break;
-        }
-    }
-
-    async startChampionship() {
-        const subSelector = '.floatLeft.btnNormal.jsTouchActive.w140';
-        const mainSelector = '.btnPrimary.jsTouchActive.block';
-        let button: ElementHandle;
-        if (await this.page.$(subSelector)) {
-            button = await this.page.$(subSelector);
-        } else if (await this.page.$(mainSelector)) {
-            button = await this.page.$(mainSelector);
-        }
-        if (button) {
-            await button.click();
         }
     }
 
@@ -145,6 +128,7 @@ export class ChampionshipRunner extends RunnerBase {
                 }
             });
         }
+
         if (scene === 'user' && life > 1) {
             const iconBox = await appealIcon.boundingBox();
             const mouse = await this.page.mouse;
@@ -157,6 +141,7 @@ export class ChampionshipRunner extends RunnerBase {
             await mouse.click(iconBox.x + 7, iconBox.y + 7);
             return;
         }
+
         const button = await this.page.$('#js_btnFight');
         if (button) {
             const buttonBox = await button.boundingBox();
@@ -260,20 +245,23 @@ export class ChampionshipRunner extends RunnerBase {
     async passDialog() {
         const popupSel = '#outStamina[style*="block"]';
         try {
-            await this.page.waitForSelector(popupSel, { timeout: 400 });
+            await this.page.waitForSelector(popupSel, { timeout: 300 });
         } catch (e) {
             // セレクタが存在しない時は正常
             return;
         }
+        console.log('popup');
 
         const popup = await this.page.$(popupSel);
         if (!popup) {
             return;
         }
         const buttons = await this.page.$$('#outStamina a.btnShadow');
+        console.log(buttons.length);
         while (buttons.length > 0) {
             const button = buttons.shift();
             const title = await this.page.evaluate((item: Element) => { return item.textContent; }, button);
+            console.log(title);
             if (title === '使用する') {
                 const buttonBox = await button.boundingBox();
                 // 座標をクリック

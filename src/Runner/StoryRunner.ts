@@ -2,6 +2,9 @@ import RunnerBase from './RunnerBase';
 
 import * as url from 'url';
 
+/**
+ * ふむふむ（聖櫻学園物語）用のランナースクリプト
+ */
 export class StoryRunner extends RunnerBase {
     homeUrl: string;
     eventId!: number;
@@ -46,8 +49,9 @@ export class StoryRunner extends RunnerBase {
 
     /**
      *  ループ実行の一単位 (override)
+     *  @returns 空のpromiseオブジェクト
      */
-    async runOnce() {
+    async runOnce(): Promise<void> {
         // Phaseで切り替える
         switch (this.phase) {
         case 'quest':
@@ -76,7 +80,11 @@ export class StoryRunner extends RunnerBase {
         }
     }
 
-    async listenQuest() {
+    /**
+     *  ふむふむボタンを押す
+     *  @returns 空のpromiseオブジェクト
+     */
+    async listenQuest(): Promise<void> {
         // ダイアログが表示されている場合飛ばす
         await this.passDialog();
 
@@ -87,11 +95,19 @@ export class StoryRunner extends RunnerBase {
         await mouse.click(buttonBox.x + 280, buttonBox.y + 280);
     }
 
-    async passDiscoveryAnimation() {
+    /**
+     *  差し入れタイムのアニメーションを飛ばす
+     *  @returns 空のpromiseオブジェクト
+     */
+    async passDiscoveryAnimation(): Promise<void> {
         await this.page.waitFor(2100);
     }
 
-    async selectEventItem() {
+    /**
+     *  差し入れアイテムのボタンをいずれか押す
+     *  @returns 空のpromiseオブジェクト
+     */
+    async selectEventItem(): Promise<void> {
         // ラブラブタイムの時間を取りに行き、取れたら保持、取れなかったらラブラブタイム以外
         let sec = 0;
         let isLoveLove: boolean;
@@ -125,7 +141,11 @@ export class StoryRunner extends RunnerBase {
         }
     }
 
-    async passEventAnimation() {
+    /**
+     *  差し入れ時のイベントアニメーションを飛ばす
+     *  @returns 空のpromiseオブジェクト
+     */
+    async passEventAnimation(): Promise<void> {
         const canvas = await this.page.$('#canvas');
         const canvasBox = await canvas.boundingBox();
         const mouse = await this.page.mouse;
@@ -133,17 +153,29 @@ export class StoryRunner extends RunnerBase {
         await mouse.click(canvasBox.x + 300, canvasBox.y + 400);
     }
 
-    async passLevelupAnimation() {
+    /**
+     *  イベントレベルアップアニメーションを飛ばす
+     *  @returns 空のpromiseオブジェクト
+     */
+    async passLevelupAnimation(): Promise<void> {
         const canvas = await this.page.$('#canvas');
         await canvas.click();
     }
 
-    async checkEventResult() {
+    /**
+     *  イベント終了時の画面を閉じてふむふむ画面に戻る
+     *  @returns 空のpromiseオブジェクト
+     */
+    async checkEventResult(): Promise<void> {
         const button = await this.page.$('.btnPrimary');
         await button.click();
     }
 
-    async passDialog() {
+    /**
+     *  スタミナ不足時のダイアログを飛ばす
+     *  @returns 空のpromiseオブジェクト
+     */
+    async passDialog(): Promise<void> {
         const popupSel = '.popup#outStamina[style*="block"]';
         try {
             await this.page.waitForSelector(popupSel, { timeout: 300 });

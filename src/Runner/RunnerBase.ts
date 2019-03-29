@@ -3,7 +3,7 @@ import * as config from 'config';
 import * as winston from 'winston';
 
 /**
- * Puppeteerを用いたランナースクリプトのベースクラス
+ *  Puppeteerを用いたランナースクリプトのベースクラス
  */
 export default abstract class RunnerBase {
     browser!: puppeteer.Browser;
@@ -45,7 +45,8 @@ export default abstract class RunnerBase {
     }
 
     /**
-     * SIGINT, SIGTERMを受け取った時にブラウザオブジェクトを閉じて完了する
+     *  SIGINT, SIGTERMを受け取った時にブラウザオブジェクトを閉じて完了する
+     *  @returns 空のpromiseオブジェクト
      */
     async terminate(): Promise<void> {
         this.isTerminated = true;
@@ -63,6 +64,7 @@ export default abstract class RunnerBase {
 
     /**
      *  環境の初期化を行う
+     *  @returns 空のpromiseオブジェクト
      */
     async init(): Promise<void> {
         this.logger.info('launching browser...');
@@ -84,7 +86,7 @@ export default abstract class RunnerBase {
         this.page = await this.browser.newPage();
         await this.page.setViewport(this.config.get('viewport'));
 
-        await this.page.goto(this.baseUrl, { waitUntil: 'networkidle0' });
+        await this.page.goto(this.baseUrl, { waitUntil: 'networkidle2' });
 
         if (this.page.url().includes('dauth.user.ameba.jp')) {
             // dauth.user.ameba.jpへとURL遷移したらログインページと認識
@@ -111,6 +113,7 @@ export default abstract class RunnerBase {
 
     /**
      *  Runner全体を実行し、TERMシグナル等が送られるまで実行する
+     *  @returns 空のpromiseオブジェクト
      */
     async run(): Promise<void> {
         this.isTerminated = false;
@@ -133,6 +136,7 @@ export default abstract class RunnerBase {
 
     /**
      *  ページリロードする
+     *  @returns 空のpromiseオブジェクト
      */
     async redo(): Promise<void> {
         let response: puppeteer.Response;
@@ -154,19 +158,22 @@ export default abstract class RunnerBase {
 
     /**
      *  ベースURLに戻る
+     *  @returns 空のpromiseオブジェクト
      */
     async goBase(): Promise<void> {
         await this.page.goto(this.baseUrl, { waitUntil: 'networkidle2' });
     }
     /**
      *  各クラスごとのホームページに戻る
+     *  @returns 空のpromiseオブジェクト
      */
     async goHome(): Promise<void> {
         await this.page.goto(this.homeUrl, { waitUntil: 'networkidle2' });
     }
 
     /**
-     *  エラーページの時飛ばす
+     *  エラーページの時、ページをスキップしてホーム指定したページに移動する
+     *  @returns 空のpromiseオブジェクト
      */
     async skipIfError(): Promise<void> {
         const h1Sel = 'h1';
@@ -186,6 +193,7 @@ export default abstract class RunnerBase {
 
     /**
      *  ブラウザを閉じて終了処理を行う
+     *  @returns 空のpromiseオブジェクト
      */
     async close(): Promise<void> {
         this.logger.info('closing browser...');
@@ -194,6 +202,7 @@ export default abstract class RunnerBase {
 
     /**
      *  ループ実行の一単位 (abstract)
+     *  @returns 空のpromiseオブジェクト
      */
     async abstract runOnce(): Promise<void>;
 }

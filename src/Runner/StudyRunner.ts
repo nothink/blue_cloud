@@ -7,6 +7,9 @@ import * as readline from 'readline';
 
 import * as studyList from '../../studylist.json';
 
+/**
+ * テスト勉強用のランナースクリプト
+ */
 export class StudyRunner extends RunnerBase {
     studyTarget: string;
     rank: number;
@@ -98,8 +101,9 @@ export class StudyRunner extends RunnerBase {
 
     /**
      *  ループ実行の一単位 (override)
+     *  @returns 空のpromiseオブジェクト
      */
-    async runOnce() {
+    async runOnce(): Promise<void> {
         // Phaseで切り替える
         switch (this.phase) {
         case 'top':
@@ -132,8 +136,9 @@ export class StudyRunner extends RunnerBase {
     /* -------------------------- status methods -------------------------- */
     /**
      *  クエスト（テスト勉強）の開始
+     * @returns 空のpromiseオブジェクト
      */
-    async startQuest() {
+    async startQuest(): Promise<void> {
         this.logger.debug('Start quest.');
         await this.page.waitFor(1000);
         // 開始ボタンを押す
@@ -145,8 +150,9 @@ export class StudyRunner extends RunnerBase {
 
     /**
      *  クエスト（テスト勉強）の選択
+     * @returns 空のpromiseオブジェクト
      */
-    async selectQuest() {
+    async selectQuest(): Promise<void> {
         this.logger.debug('Select quest.');
 
         const pointSel = 'div.cell.vTop.textRight > div > span:nth-child(1)';
@@ -238,8 +244,9 @@ export class StudyRunner extends RunnerBase {
 
     /**
      *  パートナーの選択
+     * @returns 空のpromiseオブジェクト
      */
-    async selectPartner() {
+    async selectPartner(): Promise<void> {
         this.logger.debug('Select partner.');
         await this.page.waitForSelector('section.bgTiffanyBlue');
 
@@ -290,8 +297,9 @@ export class StudyRunner extends RunnerBase {
 
     /**
      *  デッキの選択
+     * @returns 空のpromiseオブジェクト
      */
-    async selectDeck() {
+    async selectDeck(): Promise<void> {
         this.logger.debug('Select deck.');
 
         // デッキタブの選択
@@ -312,8 +320,9 @@ export class StudyRunner extends RunnerBase {
 
     /**
      *  テスト勉強実行
+     * @returns 空のpromiseオブジェクト
      */
-    async battle() {
+    async battle(): Promise<void> {
         this.logger.debug('battle.');
 
         await this.page.waitFor(600);
@@ -353,8 +362,9 @@ export class StudyRunner extends RunnerBase {
 
     /**
      *  結果画面の確認
+     * @returns 空のpromiseオブジェクト
      */
-    async checkResult() {
+    async checkResult(): Promise<void> {
         this.logger.debug('Check Result.');
         await this.page.goto('https://vcard.ameba.jp/s#study/quest/select');
     }
@@ -364,8 +374,9 @@ export class StudyRunner extends RunnerBase {
      *  しばし休む。
      *  回復量は60秒で1ポイントなので、最大100ポイントへの差分だけ待機。
      *  @param current 現在のポイント
+     *  @returns 空のpromiseオブジェクト
      */
-    async takeBreak(current: number) {
+    async takeBreak(current: number): Promise<void> {
         const delta = 100 - current;
         const next = moment().add(delta * 60, 'second');
         let left = next.diff(moment());
@@ -394,8 +405,9 @@ export class StudyRunner extends RunnerBase {
 
     /**
      *  勉強中のボタンを一度クリックする(10秒制限)
+     *  @returns 空のpromiseオブジェクト
      */
-    async clickOnce() {
+    async clickOnce(): Promise<void> {
         const buttonSel = '.js_attackBtn.block:not([disabled])';
         await this.page.waitForSelector(buttonSel, { timeout: 10000 });
         const button = await this.page.$(buttonSel);
@@ -405,6 +417,7 @@ export class StudyRunner extends RunnerBase {
     /**
      *  中断ダイアログが表示されているかどうかをチェックして
      *  もし表示されていたらダイアログを飛ばす
+     *  @returns true: ダイアログが表示されている / false: ダイアログなし
      */
     async isDisplayedDialog(): Promise<boolean> {
         try {
@@ -438,10 +451,11 @@ export class StudyRunner extends RunnerBase {
     }
 
     /**
-     *  炭酸補充ダイアログが表示されているかどうかをチェックして
+     *  集中炭酸の補充ダイアログが表示されているかどうかをチェックして
      *  もし表示されていたらダイアログを飛ばす
+     * @returns 空のpromiseオブジェクト
      */
-    async useSpark() {
+    async useSpark(): Promise<void> {
         try {
             const popupSel = '.js_output.absolute.block';
             await this.page.waitForSelector(popupSel, { timeout: 1000 });
@@ -457,7 +471,7 @@ export class StudyRunner extends RunnerBase {
         const button = await this.page.$('.js_restart.btn');
         if (button) {
             await button.click();
-            return Promise.resolve(true);
+            return;
         }
         const healSel = '.btn.btnPrimary.js_updateAp';
         const healButton = await this.page.$(healSel);
@@ -473,9 +487,10 @@ export class StudyRunner extends RunnerBase {
     }
 
     /**
-     *  コンテニュー画面が表示された場合、炭酸を消費して飛ばす
+     *  コンテニュー画面が表示された場合、集中炭酸を消費して飛ばす
+     *  @returns 空のpromiseオブジェクト
      */
-    async passIfContinue() {
+    async passIfContinue(): Promise<void> {
         const popSel = '.js_outPutPopupContinueMenu.homeMenu.z5.none.block';
         try {
             await this.page.waitForSelector(popSel, { timeout: 2000 });
@@ -493,7 +508,11 @@ export class StudyRunner extends RunnerBase {
         }
     }
 
-    async useSkills() {
+    /**
+     *  必要に応じてスキルを順に判定して行使する
+     *  @returns 空のpromiseオブジェクト
+     */
+    async useSkills(): Promise<void> {
         const round = await this.page.evaluate('INIT_JSON.enemy.roundNum');
         if (round < 5) {
             // 5ラウンドミッションの最終ラウンド以外は使う必要はない
@@ -518,6 +537,10 @@ export class StudyRunner extends RunnerBase {
         }
     }
 
+    /**
+     *  スキルのグリッドを順番に走破して、ヒットした場合はスキルを発動する
+     *  @returns 発動したスキル番号(0-9) / undefined: 発動可能スキルなし
+     */
     async useSkillSomeone(): Promise<number> {
         const canvas = await this.page.$('#canvas');
         const canvasBox = await canvas.boundingBox();
