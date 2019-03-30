@@ -168,10 +168,10 @@ export class ChampionshipRunner extends RunnerBase {
 
         const myAttack = status[0];
         const tgtAttack = status[1];
-        const life = status[2];
+        const hearts = status[2];
         // ライフ消費は、自分の攻が相手の1.2倍だったら1つ、それ以外は2とする
         const needLife = (myAttack > tgtAttack * 1.2) ? 1 : 2;
-        if (life < needLife) {
+        if (hearts < needLife) {
             // エリアに戻る
             this.goHome();
             return;
@@ -187,16 +187,22 @@ export class ChampionshipRunner extends RunnerBase {
      *  @returns 空のpromiseオブジェクト
      */
     async bossBattle(): Promise<void> {
-        const isRare = await this.isRare();
-
         const curSel = 'body > div.gfContentBgFlower > div > div > div > div.gfOutlineFrame > div > section.ofHidden > div > div.dropShadow.relative.z1 > div.textCenter.relative.fs12 > span.fcPink.outlineWhite';
         const maxSel = 'body > div.gfContentBgFlower > div > div > div > div.gfOutlineFrame > div > section.ofHidden > div > div.dropShadow.relative.z1 > div.textCenter.relative.fs12 > span:nth-child(2)';
-        const current = await this.page.$eval(curSel, (item: Element) => {
-            return Number(item.textContent.replace(/,/g, ''));
-        });
-        const max = await this.page.$eval(maxSel, (item: Element) => {
-            return Number(item.textContent.substring(1).replace(/,/g, ''));
-        });
+        const status = await Promise.all([
+            this.page.$eval(curSel, (item: Element) => { return Number(item.textContent.replace(/,/g, '')); }),
+            this.page.$eval(maxSel, (item: Element) => { return Number(item.textContent.substring(1).replace(/,/g, '')); }),
+            this.getHearts(),
+            this.isFullGauge(),
+            this.hasBuff(),
+            this.isRare()]);
+
+        const current = status[0];
+        const max = status[1];
+        const hearts = status[2];
+        const isFullGauge = status[3];
+        const hasBuff = status[4];
+        const isRare = status[5];
 
         let needLife = 0;
         if (!this.expected && current === 0) {
@@ -222,12 +228,21 @@ export class ChampionshipRunner extends RunnerBase {
                 needLife = 5;
             }
         }
-        const buttonDivs = await this.page.$$('.js_heartSelectionBtn');
-        const hearts = await this.getHearts();
         if (hearts < needLife) {
             this.goHome();
             return;
         }
+
+        if (needLife === 5 && isFullGauge && !hasBuff && isRare) {
+            // ライフ5, ゲージ満タン, バフ未発動, レア敵の時はバフ着火ボタンを押す
+            console.log('Fire!');
+            const fire = await this.page.$('.js_fireStealth');
+            const fireBox = await fire.boundingBox();
+            await this.page.mouse.click(fireBox.x + 1, fireBox.y + 1);
+            await this.page.waitFor(900);
+        }
+
+        const buttonDivs = await this.page.$$('.js_heartSelectionBtn');
         const button = await buttonDivs[needLife - 1];
         const buttonBox = await button.boundingBox();
         await this.page.mouse.click(buttonBox.x + 1, buttonBox.y + 1);
