@@ -22,6 +22,7 @@ export class ChampionshipRunner extends RunnerBase {
         // カリスマホーム
         this.homeUrl = this.config.get('championshipHomeUrl');
 
+        // 一時保存した発揮値をリストア
         const tmpPath = `config/${process.env.NODE_ENV}.tmp`;
         try {
             fs.statSync(tmpPath);
@@ -29,7 +30,6 @@ export class ChampionshipRunner extends RunnerBase {
         } catch (e) {
             this.expected = undefined;
         }
-        console.log(this.expected);
     }
 
     /**
@@ -74,32 +74,31 @@ export class ChampionshipRunner extends RunnerBase {
      *  @returns 空のpromiseオブジェクト
      */
     async runOnce(): Promise<void> {
-        // Phaseで切り替える
-        // console.log(this.phase);
+        let promise: Promise<void>;
         switch (this.phase) {
         case 'quest':
-            await this.walk();
+            promise = this.walk();
             break;
         case 'encount-animation':
-            await this.skipEncount();
+            promise = this.skipEncount();
             break;
         case 'user':
-            await this.userBattle();
+            promise = this.userBattle();
             break;
         case 'boss':
-            await this.bossBattle();
+            promise = this.bossBattle();
             break;
         case 'battle-animation':
-            await this.skipAnimation();
+            promise = this.skipAnimation();
             break;
         case 'result':
-            await this.skipResult();
+            promise = this.skipResult();
             break;
         default:
-            await this.goHome();
-            this.logger.debug('[ Go championship home ]');
+            promise = this.goHome();
             break;
         }
+        return promise;
     }
 
     /**
@@ -107,49 +106,51 @@ export class ChampionshipRunner extends RunnerBase {
      *  @returns 空のpromiseオブジェクト
      */
     async walk(): Promise<void> {
-        // ダイアログが表示されている場合飛ばす
-        await this.passDialog();
-
-        // ゲージ満タンかのチェック
-        if (this.isFullGauge()) {
-            console.log('Gauge is full.');
-        }
-
-        const life = await this.getHearts();
-
-        // アピールタイムかどうかのチェック
-        const appealIcon = await this.page.$('.js_appealTime');
-        let scene: string = '';
-        if (appealIcon) {
-            scene = await this.page.$eval('.js_appealTime', (item: Element) => {
-                const href = (<HTMLAnchorElement>item).href;
-                if (href.includes('boss')) {
-                    return 'boss';
-                }
-                if (href.includes('user')) {
-                    return 'user';
-                }
-            });
-        }
-
-        if (scene === 'user' && life > 1) {
-            const iconBox = await appealIcon.boundingBox();
-            const mouse = await this.page.mouse;
-            await mouse.click(iconBox.x + 7, iconBox.y + 7);
-            return;
-        }
-        if (scene === 'boss' && life === 5) {
-            const iconBox = await appealIcon.boundingBox();
-            const mouse = await this.page.mouse;
-            await mouse.click(iconBox.x + 7, iconBox.y + 7);
-            return;
-        }
-
+        // ボタン存在可否
         const button = await this.page.$('#js_btnFight');
-        if (button) {
-            const buttonBox = await button.boundingBox();
-            const mouse = await this.page.mouse;
-            await mouse.click(buttonBox.x + 12, buttonBox.y + 12);
+        while (button) {
+            // ダイアログが表示されている場合飛ばす
+            await this.passDialog();
+
+            // クリック可否性チェック
+            let clickable: boolean;
+            try {
+                clickable = await this.page.$eval('#js_btnFight', (item: Element) => {
+                    const cls = item.getAttribute('class');
+                    if (cls.includes('btnFightOn')) {
+                        return true;
+                    }
+                    return false;
+                });
+            } catch (e) {
+                return;
+            }
+            if (clickable) {
+                const buttonBox = await button.boundingBox();
+                await this.page.mouse.click(buttonBox.x + 12, buttonBox.y + 12);
+
+                const status = await Promise.all([
+                    this.getHearts(),
+                    this.getCurrentScene()]);
+                // ゲージ満タンかのチェック
+                const life = status[0];
+                const scene = status[1];
+                // アピールタイムで目標のライフを確保したかチェック
+                const appealIcon = await this.page.$('.js_appealTime');
+                if (scene === 'user' && life > 1) {
+                    const iconBox = await appealIcon.boundingBox();
+                    await this.page.mouse.click(iconBox.x + 7, iconBox.y + 7);
+                    return;
+                }
+                if (scene === 'boss' && life === 5) {
+                    const iconBox = await appealIcon.boundingBox();
+                    await this.page.mouse.click(iconBox.x + 7, iconBox.y + 7);
+                    return;
+                }
+            } else {
+                // 0.1秒待機
+                await this.page.waitFor(100);
+            }
         }
     }
 
@@ -160,24 +161,25 @@ export class ChampionshipRunner extends RunnerBase {
     async userBattle(): Promise<void> {
         const mySel = 'body > div.gfContentBgFlower > div > div > div > div.gfOutlineFrame > div > section:nth-child(1) > div:nth-child(2) > div.clearfix.fcWhite.fs12.ph5.pt10 > div.floatLeft.half > p:nth-child(2)';
         const tgtSel = 'body > div.gfContentBgFlower > div > div > div > div.gfOutlineFrame > div > section:nth-child(1) > div:nth-child(2) > div.clearfix.fcWhite.fs12.ph5.pt10 > div.floatRight.half.textRight > p:nth-child(2)';
-        const myAttack = await this.page.$eval(mySel, (item: Element) => {
-            return Number(item.textContent);
-        });
-        const tgtAttack = await this.page.$eval(tgtSel, (item: Element) => {
-            return Number(item.textContent);
-        });
-        const life = await this.getHearts();
+        const status = await Promise.all([
+            this.page.$eval(mySel, (item: Element) => { return Number(item.textContent); }),
+            this.page.$eval(tgtSel, (item: Element) => { return Number(item.textContent); }),
+            this.getHearts()]);
+
+        const myAttack = status[0];
+        const tgtAttack = status[1];
+        const life = status[2];
         // ライフ消費は、自分の攻が相手の1.2倍だったら1つ、それ以外は2とする
         const needLife = (myAttack > tgtAttack * 1.2) ? 1 : 2;
         if (life < needLife) {
+            // エリアに戻る
             this.goHome();
             return;
         }
         const buttonDivs = await this.page.$$('.js_heartSelectionBtn');
-        const button = await buttonDivs[needLife - 1];
+        const button = buttonDivs[needLife - 1];
         const buttonBox = await button.boundingBox();
-        const mouse = await this.page.mouse;
-        await mouse.click(buttonBox.x + 1, buttonBox.y + 1);
+        await this.page.mouse.click(buttonBox.x + 1, buttonBox.y + 1);
     }
 
     /**
@@ -186,9 +188,6 @@ export class ChampionshipRunner extends RunnerBase {
      */
     async bossBattle(): Promise<void> {
         const isRare = await this.isRare();
-        if (isRare) {
-            console.log('rare');
-        }
 
         const curSel = 'body > div.gfContentBgFlower > div > div > div > div.gfOutlineFrame > div > section.ofHidden > div > div.dropShadow.relative.z1 > div.textCenter.relative.fs12 > span.fcPink.outlineWhite';
         const maxSel = 'body > div.gfContentBgFlower > div > div > div > div.gfOutlineFrame > div > section.ofHidden > div > div.dropShadow.relative.z1 > div.textCenter.relative.fs12 > span:nth-child(2)';
@@ -209,6 +208,8 @@ export class ChampionshipRunner extends RunnerBase {
                 fs.writeFileSync(tmpPath, String(this.expected));
             }
             const remain =  max - current;
+            // バフ発動中は2倍計算
+            const expectedNow = this.hasBuff() ? this.expected * 2 : this.expected;
             if (remain < this.expected * 0.9) {
                 needLife = 1;
             } else if (remain < this.expected * 2.0) {
@@ -229,8 +230,7 @@ export class ChampionshipRunner extends RunnerBase {
         }
         const button = await buttonDivs[needLife - 1];
         const buttonBox = await button.boundingBox();
-        const mouse = await this.page.mouse;
-        await mouse.click(buttonBox.x + 1, buttonBox.y + 1);
+        await this.page.mouse.click(buttonBox.x + 1, buttonBox.y + 1);
     }
 
     /**
@@ -247,9 +247,12 @@ export class ChampionshipRunner extends RunnerBase {
      */
     async skipResult(): Promise<void> {
         const selector = '.btnPrimary.jsTouchActive';
-        const button = await this.page.$(selector);
-        if (button) {
+        try {
+            const button = await this.page.$(selector);
             await button.click();
+        } catch (e) {
+            // ボタンなしは無視していい
+            return;
         }
     }
 
@@ -258,10 +261,17 @@ export class ChampionshipRunner extends RunnerBase {
      *  @returns 空のpromiseオブジェクト
      */
     async skipEncount(): Promise<void> {
-        const canvas = await this.page.waitForSelector('#canvas');
-        await canvas.click();
-        await this.page.waitFor(300); // アニメーション
-        await canvas.click();
+        const canvas = await this.page.$('#canvas');
+        try {
+            while (canvas) {
+                // canvasが無くなるまでクリック
+                await canvas.click();
+                await this.page.waitFor(100);
+            }
+        } catch (e) {
+            // canvas不在でここにくるはず
+            return;
+        }
     }
 
     // internal -----------------------------------------
@@ -271,18 +281,18 @@ export class ChampionshipRunner extends RunnerBase {
      *  @returns 空のpromiseオブジェクト
      */
     async passDialog(): Promise<void> {
-        const popupSel = '#outStamina[style*="block"]';
-        try {
-            await this.page.waitForSelector(popupSel, { timeout: 300 });
-        } catch (e) {
-            // セレクタが存在しない時は正常
+        // スタミナ不足ダイアログの可否をチェック
+        const display = await this.page.$eval('#outStamina', (item: Element) => {
+            const style = item.getAttribute('style');
+            if (style.includes('block')) {
+                return true;
+            }
+            return false;
+        });
+        if (!display) {
             return;
         }
 
-        const popup = await this.page.$(popupSel);
-        if (!popup) {
-            return;
-        }
         const buttons = await this.page.$$('#outStamina a.btnShadow');
         while (buttons.length > 0) {
             const button = buttons.shift();
@@ -290,11 +300,10 @@ export class ChampionshipRunner extends RunnerBase {
             if (title === '使用する') {
                 const buttonBox = await button.boundingBox();
                 // 座標をクリック
-                const mouse = await this.page.mouse;
-                await mouse.click(buttonBox.x + 80, buttonBox.y + 20);
+                await this.page.mouse.click(buttonBox.x + 80, buttonBox.y + 20);
                 const confirm = await this.page.$('#confirmPopOkBtn');
                 const confirmBox = await confirm.boundingBox();
-                await mouse.click(confirmBox.x + 80, confirmBox.y + 20);
+                await this.page.mouse.click(confirmBox.x + 80, confirmBox.y + 20);
                 return;
             }
         }
@@ -340,5 +349,39 @@ export class ChampionshipRunner extends RunnerBase {
             return true;
         }
         return false;
+    }
+
+    /**
+     *  バフが発動中かどうか
+     *  @returns booleanのPromise
+     */
+    async hasBuff(): Promise<boolean> {
+        if (await this.page.$('.js_attackBuff')) {
+            if (await this.page.$('.js_attackBuff.none')) {
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     *  アピールタイムに突入しているかどうかを確認して、どのアピールシーンかチェックする
+     *  (走行中のみ)
+     *  @returns stringのPromise (boss/user)かundefined
+     */
+    async getCurrentScene(): Promise<string> {
+        if (await this.page.$('.js_appealTime')) {
+            return await this.page.$eval('.js_appealTime', (item: Element) => {
+                const href = (<HTMLAnchorElement>item).href;
+                if (href.includes('boss')) {
+                    return 'boss';
+                }
+                if (href.includes('user')) {
+                    return 'user';
+                }
+            });
+        }
+        return undefined;
     }
 }

@@ -8,6 +8,7 @@ import * as winston from 'winston';
 export default abstract class RunnerBase {
     browser!: puppeteer.Browser;
     page!: puppeteer.Page;
+    mouse!: puppeteer.Mouse;
     logger!: winston.Logger;
     isTerminated: boolean;
     config: config.IConfig;
