@@ -128,6 +128,7 @@ export default abstract class RunnerBase {
                 await this.page.waitFor(100);
             } catch (e) {
                 this.logger.warn(e.stack);
+                console.log(e.stack);
                 await this.page.waitFor(300);
                 await this.redo();
             }

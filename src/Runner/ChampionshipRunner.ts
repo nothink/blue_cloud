@@ -102,15 +102,18 @@ export class ChampionshipRunner extends RunnerBase {
         }
     }
 
-    async walk() {
+    /**
+     *  カリスマのエリア歩行
+     *  @returns 空のpromiseオブジェクト
+     */
+    async walk(): Promise<void> {
         // ダイアログが表示されている場合飛ばす
         await this.passDialog();
 
-        let isFullGauge = false;
-        if (await this.page.$('.gaugeFullAnime')) {
-            isFullGauge = true;
+        // ゲージ満タンかのチェック
+        if (this.isFullGauge()) {
+            console.log('Gauge is full.');
         }
-        // console.log(isFullGauge);
 
         const life = await this.getHearts();
 
@@ -150,7 +153,11 @@ export class ChampionshipRunner extends RunnerBase {
         }
     }
 
-    async userBattle() {
+    /**
+     *  対ユーザバトル処理
+     *  @returns 空のpromiseオブジェクト
+     */
+    async userBattle(): Promise<void> {
         const mySel = 'body > div.gfContentBgFlower > div > div > div > div.gfOutlineFrame > div > section:nth-child(1) > div:nth-child(2) > div.clearfix.fcWhite.fs12.ph5.pt10 > div.floatLeft.half > p:nth-child(2)';
         const tgtSel = 'body > div.gfContentBgFlower > div > div > div > div.gfOutlineFrame > div > section:nth-child(1) > div:nth-child(2) > div.clearfix.fcWhite.fs12.ph5.pt10 > div.floatRight.half.textRight > p:nth-child(2)';
         const myAttack = await this.page.$eval(mySel, (item: Element) => {
@@ -160,6 +167,7 @@ export class ChampionshipRunner extends RunnerBase {
             return Number(item.textContent);
         });
         const life = await this.getHearts();
+        // ライフ消費は、自分の攻が相手の1.2倍だったら1つ、それ以外は2とする
         const needLife = (myAttack > tgtAttack * 1.2) ? 1 : 2;
         if (life < needLife) {
             this.goHome();
@@ -172,7 +180,11 @@ export class ChampionshipRunner extends RunnerBase {
         await mouse.click(buttonBox.x + 1, buttonBox.y + 1);
     }
 
-    async bossBattle() {
+    /**
+     *  ボスバトル（アピールタイム）処理
+     *  @returns 空のpromiseオブジェクト
+     */
+    async bossBattle(): Promise<void> {
         const isRare = await this.isRare();
         if (isRare) {
             console.log('rare');
@@ -221,11 +233,19 @@ export class ChampionshipRunner extends RunnerBase {
         await mouse.click(buttonBox.x + 1, buttonBox.y + 1);
     }
 
-    async skipAnimation() {
+    /**
+     *  戦闘アニメーションをリロードしてスキップする
+     *  @returns 空のpromiseオブジェクト
+     */
+    async skipAnimation(): Promise<void> {
         await this.redo();
     }
 
-    async skipResult() {
+    /**
+     *  戦闘結果画面をスキップする
+     *  @returns 空のpromiseオブジェクト
+     */
+    async skipResult(): Promise<void> {
         const selector = '.btnPrimary.jsTouchActive';
         const button = await this.page.$(selector);
         if (button) {
@@ -233,16 +253,24 @@ export class ChampionshipRunner extends RunnerBase {
         }
     }
 
-    async skipEncount() {
+    /**
+     *  遭遇画面（ユーザ、アピール）をスキップする
+     *  @returns 空のpromiseオブジェクト
+     */
+    async skipEncount(): Promise<void> {
         const canvas = await this.page.waitForSelector('#canvas');
         await canvas.click();
-        await this.page.waitFor(200); // アニメーション
+        await this.page.waitFor(300); // アニメーション
         await canvas.click();
     }
 
-    // internal ---------
+    // internal -----------------------------------------
 
-    async passDialog() {
+    /**
+     *  バー補給ダイアログの有無をチェックし、表示されている場合はバーを利用してスキップする
+     *  @returns 空のpromiseオブジェクト
+     */
+    async passDialog(): Promise<void> {
         const popupSel = '#outStamina[style*="block"]';
         try {
             await this.page.waitForSelector(popupSel, { timeout: 300 });
@@ -250,18 +278,15 @@ export class ChampionshipRunner extends RunnerBase {
             // セレクタが存在しない時は正常
             return;
         }
-        console.log('popup');
 
         const popup = await this.page.$(popupSel);
         if (!popup) {
             return;
         }
         const buttons = await this.page.$$('#outStamina a.btnShadow');
-        console.log(buttons.length);
         while (buttons.length > 0) {
             const button = buttons.shift();
             const title = await this.page.evaluate((item: Element) => { return item.textContent; }, button);
-            console.log(title);
             if (title === '使用する') {
                 const buttonBox = await button.boundingBox();
                 // 座標をクリック
@@ -276,19 +301,44 @@ export class ChampionshipRunner extends RunnerBase {
         return;
     }
 
+    /**
+     *  ライフ（ハート）の数をカウントする
+     *  @returns 現在のハートの数のプロミスオブジェクト(0-5)
+     */
     async getHearts(): Promise<number> {
         const hearts = await this.page.$$('.inlineBlock.heartOn.js_heartOn');
         return hearts.length;
     }
 
+    /**
+     *  アピール相手がレアかどうか
+     *  @returns booleanのPromise
+     */
     async isRare(): Promise<boolean> {
         const rareSel = 'body > div.gfContentBgFlower > div > div > div > div.gfOutlineFrame > div > section.ofHidden > div > div.dropShadow.relative.z1 > div.table.fill.pt3.pb1 > div:nth-child(1) > img';
         try {
             await this.page.waitForSelector(rareSel, { timeout: 300 });
-            return true;
+            return await this.page.$eval(rareSel, (item: Element) => {
+                const src = (<HTMLImageElement>item).src;
+                if (src.includes('icon_rare')) {
+                    return true;
+                }
+                return false;
+            });
         } catch (e) {
             // セレクタが存在しない時は通常
             return false;
         }
+    }
+
+    /**
+     *  テンションゲージがMAXになっているかどうか
+     *  @returns booleanのPromise
+     */
+    async isFullGauge(): Promise<boolean> {
+        if (await this.page.$('.gaugeFullAnime')) {
+            return true;
+        }
+        return false;
     }
 }
