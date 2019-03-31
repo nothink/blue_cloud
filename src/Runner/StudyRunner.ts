@@ -148,8 +148,6 @@ export class StudyRunner extends RunnerBase {
      * @returns 空のpromiseオブジェクト
      */
     async selectQuest(): Promise<void> {
-        this.logger.debug('Select quest.');
-
         // ダイアログが表示されていたら飛ばす
         const isContinue = await this.isDisplayedDialog();
         if (isContinue) {
@@ -246,9 +244,8 @@ export class StudyRunner extends RunnerBase {
         this.logger.debug('Select partner.');
         await this.page.waitForSelector('section.bgTiffanyBlue');
 
-        const partnersSel = 'section.bgTiffanyBlue > '
-            + 'div.relative.bgPartner.pt5 > '
-            + 'div[data-href="#study/deck/select"]';
+        const partnersSel = 'section.bgTiffanyBlue > \
+        div.relative.bgPartner.pt5 > div[data-href="#study/deck/select"]';
 
         const partners = await this.page.$$(partnersSel);
         if (this.studyTarget === 'level') {
@@ -328,7 +325,12 @@ export class StudyRunner extends RunnerBase {
 
         try {
             while (this.phase === 'battle') {
-                const canvas = await this.page.waitForSelector('#canvas');
+                const canvas = await this.page.$('#canvas');
+                if (!canvas) {
+                    // canvasなしはphase終了と同じ扱い
+                    // (タイミング的に)
+                    break;
+                }
                 await this.page.waitFor(3500); // 初期アニメーション
                 await canvas.click();
                 await this.page.waitFor(4300); // ローディングアニメーション
@@ -340,13 +342,13 @@ export class StudyRunner extends RunnerBase {
                 // 攻撃クリック1回
                 await this.clickOnce();
 
-                await this.page.waitFor(600);
+                await this.page.waitFor(300);
                 await this.redo();
+                await this.page.waitFor(300);
             }
         } catch (e) {
             this.logger.error(e);
-        } finally {
-            // 完了後ホームに戻る
+            // 例外時はホームに戻る
             await this.goHome();
         }
     }
@@ -395,14 +397,16 @@ export class StudyRunner extends RunnerBase {
     }
 
     /**
-     *  勉強中のボタンを一度クリックする(10秒制限)
+     *  勉強中のボタンを一度クリックする(20秒制限)
      *  @returns 空のpromiseオブジェクト
      */
     async clickOnce(): Promise<void> {
-        const buttonSel = '.js_attackBtn.block:not([disabled])';
-        await this.page.waitForSelector(buttonSel, { timeout: 10000 });
-        const button = await this.page.$(buttonSel);
-        await button.click();
+        if (await this.page.$('.js_attackBtn')) {
+            const buttonSel = '.js_attackBtn.absolute.attackBtn.none.z3.block';
+            const button = await this.page.waitForSelector(
+                buttonSel, { timeout: 20000 });
+            await button.click();
+        }
     }
 
     /**
@@ -413,36 +417,38 @@ export class StudyRunner extends RunnerBase {
     async isDisplayedDialog(): Promise<boolean> {
         // 中断ダイアログの可否をチェック
         try {
-            const display = await this.page.$eval(
-                '.js_popupReStartSelect',
-                (item: Element) => {
-                    const cls = item.getAttribute('class');
-                    if (cls.includes('block')) {
-                        return true;
-                    }
-                    return false;
-                });
-            if (!display) {
-                return;
+            const dialogSel = '.js_popupReStartSelect';
+            if (await this.page.$(dialogSel)) {
+                const display = await this.page.$eval(
+                    dialogSel,
+                    (item: Element) => {
+                        const cls = item.getAttribute('class');
+                        if (cls.includes('block')) {
+                            return true;
+                        }
+                        return false;
+                    });
+                if (!display) {
+                    // ダイアログ非表示
+                    return Promise.resolve(false);
+                }
             }
         } catch (e) {
-            // ダイアログ要素そのものが無い場合は開始時
-            return;
+            // ダイアログ要素そのものが無い場合はページ違い
+            return Promise.resolve(false);
         }
 
+        // 再開ボタンが存在する時
         const button = await this.page.$('.js_restart.btn');
         if (button) {
             await button.click();
             return Promise.resolve(true);
         }
+        // 結果ボタンが存在するとき
         const resultSel = '.btn.btnPrimary[data-href="#study/battle/result"]';
         const resultButton = await this.page.$(resultSel);
         if (resultButton) {
-            try {
-                await resultButton.click();
-            } catch {
-                return Promise.resolve(true);
-            }
+            await resultButton.click();
             return Promise.resolve(true);
         }
         return Promise.resolve(false);

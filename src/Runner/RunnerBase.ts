@@ -38,6 +38,9 @@ export default abstract class RunnerBase {
     async terminate(): Promise<void> {
         this.isTerminated = true;
         try {
+            if (this.page) {
+                await this.page.close();
+            }
             if (this.browser) {
                 await this.browser.close();
             }
@@ -63,6 +66,7 @@ export default abstract class RunnerBase {
             slowMo: this.config.get('chrome.slowMo'),
             args: this.config.get('chrome.args'),
         });
+        // 終了時にterminateを呼ぶ
         this.browser.on('disconnected', this.terminate);
 
         // クラッシュ等の対策で既存ページすべて閉じる
@@ -96,6 +100,8 @@ export default abstract class RunnerBase {
             await this.page.waitForNavigation();
             return;
         }
+        // ページ終了時にもterminateを呼ぶ
+        this.browser.on('targetdestroyed', this.terminate);
     }
 
     /**
@@ -164,17 +170,19 @@ export default abstract class RunnerBase {
      *  @returns 空のpromiseオブジェクト
      */
     async skipIfError(): Promise<void> {
-        const h1Sel = 'h1';
         try {
-            await this.page.waitForSelector(h1Sel, { timeout: 800 });
-            const heading = await this.page.$eval(h1Sel, (h1: Element) => {
-                return h1.textContent;
-            });
-            if (heading === 'エラー') {
-                await this.page.waitFor(300);
-                await this.goHome();
+            const h1Sel = 'h1';
+            if (await this.page.$(h1Sel)) {
+                const heading = await this.page.$eval(h1Sel, (h1: Element) => {
+                    return h1.textContent;
+                });
+                if (heading === 'エラー') {
+                    await this.page.waitFor(300);
+                    await this.goHome();
+                }
             }
-        } catch {
+        } catch (e) {
+            // 無い時はcanvasオンリーとか？
             return;
         }
     }
