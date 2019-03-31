@@ -169,8 +169,8 @@ export class ChampionshipRunner extends RunnerBase {
         const myAttack = status[0];
         const tgtAttack = status[1];
         const hearts = status[2];
-        // ライフ消費は、自分の攻が相手の1.2倍だったら1つ、それ以外は2とする
-        const needLife = (myAttack > tgtAttack * 1.2) ? 1 : 2;
+        // ライフ消費は、自分の攻が相手の1.1倍だったら1つ、それ以外は2とする
+        const needLife = (myAttack > tgtAttack * 1.1) ? 1 : 2;
         if (hearts < needLife) {
             // エリアに戻る
             this.goHome();
@@ -233,8 +233,8 @@ export class ChampionshipRunner extends RunnerBase {
             return;
         }
 
-        if (needLife === 5 && isFullGauge && !hasBuff && isRare) {
-            // ライフ5, ゲージ満タン, バフ未発動, レア敵の時はバフ着火ボタンを押す
+        if (isFullGauge && !hasBuff && isRare) {
+            // ゲージ満タン, バフ未発動, レア敵の時はバフ着火ボタンを押す
             console.log('Fire!');
             const fire = await this.page.$('.js_fireStealth');
             const fireBox = await fire.boundingBox();
@@ -331,7 +331,7 @@ export class ChampionshipRunner extends RunnerBase {
      */
     async getHearts(): Promise<number> {
         const hearts = await this.page.$$('.inlineBlock.heartOn.js_heartOn');
-        return hearts.length;
+        return Promise.resolve(hearts.length);
     }
 
     /**
@@ -342,16 +342,16 @@ export class ChampionshipRunner extends RunnerBase {
         const rareSel = 'body > div.gfContentBgFlower > div > div > div > div.gfOutlineFrame > div > section.ofHidden > div > div.dropShadow.relative.z1 > div.table.fill.pt3.pb1 > div:nth-child(1) > img';
         try {
             await this.page.waitForSelector(rareSel, { timeout: 300 });
-            return await this.page.$eval(rareSel, (item: Element) => {
+            return Promise.resolve(await this.page.$eval(rareSel, (item: Element) => {
                 const src = (<HTMLImageElement>item).src;
                 if (src.includes('icon_rare')) {
-                    return true;
+                    return Promise.resolve(true);
                 }
-                return false;
-            });
+                return Promise.resolve(false);
+            }));
         } catch (e) {
             // セレクタが存在しない時は通常
-            return false;
+            return Promise.resolve(false);
         }
     }
 
@@ -361,9 +361,9 @@ export class ChampionshipRunner extends RunnerBase {
      */
     async isFullGauge(): Promise<boolean> {
         if (await this.page.$('.gaugeFullAnime')) {
-            return true;
+            return Promise.resolve(true);
         }
-        return false;
+        return Promise.resolve(false);
     }
 
     /**
@@ -372,12 +372,16 @@ export class ChampionshipRunner extends RunnerBase {
      */
     async hasBuff(): Promise<boolean> {
         if (await this.page.$('.js_attackBuff')) {
-            if (await this.page.$('.js_attackBuff.none')) {
-                return false;
-            }
-            return true;
+            return await this.page.$eval('.js_attackBuff', (item) => {
+                const cls = item.getAttribute('class');
+                if (cls.includes('none')) {
+                    return Promise.resolve(false);
+                }
+                return Promise.resolve(true);
+            });
         }
-        return false;
+        // ここはこれで正しいのか？
+        return Promise.resolve(false);
     }
 
     /**
@@ -390,13 +394,13 @@ export class ChampionshipRunner extends RunnerBase {
             return await this.page.$eval('.js_appealTime', (item: Element) => {
                 const href = (<HTMLAnchorElement>item).href;
                 if (href.includes('boss')) {
-                    return 'boss';
+                    return Promise.resolve('boss');
                 }
                 if (href.includes('user')) {
-                    return 'user';
+                    return Promise.resolve('user');
                 }
             });
         }
-        return undefined;
+        return Promise.resolve(undefined);
     }
 }

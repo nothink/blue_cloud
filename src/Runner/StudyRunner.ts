@@ -140,12 +140,7 @@ export class StudyRunner extends RunnerBase {
      */
     async startQuest(): Promise<void> {
         this.logger.debug('Start quest.');
-        await this.page.waitFor(1000);
-        // 開始ボタンを押す
-        const btnSel = '.btn.btnPrimary.jsTouchActive';
-        await this.page.waitForSelector(btnSel);
-        const button  = await this.page.$(btnSel);
-        await button.click();
+        await this.page.goto('https://vcard.ameba.jp/s#study/quest/select');
     }
 
     /**
@@ -154,6 +149,14 @@ export class StudyRunner extends RunnerBase {
      */
     async selectQuest(): Promise<void> {
         this.logger.debug('Select quest.');
+
+        // ダイアログが表示されていたら飛ばす
+        const isContinue = await this.isDisplayedDialog();
+        if (isContinue) {
+            this.logger.debug('is Continue.');
+            console.log('continue');
+            return;
+        }
 
         const pointSel = 'div.cell.vTop.textRight > div > span:nth-child(1)';
         await this.page.waitForSelector(pointSel, { timeout: 3000 });
@@ -196,13 +199,6 @@ export class StudyRunner extends RunnerBase {
         this.studyInfo = studyList[infoKey];
         this.logger.debug(`next: ${this.studyInfo['name']}`);
 
-        // ダイアログが表示されていたら飛ばす
-        const isContinue = await this.isDisplayedDialog();
-        if (isContinue) {
-            this.logger.debug('is Continue.');
-            return;
-        }
-
         // 残りポイント不足の時は待機してトップに戻る
         if (!this.usingSpark && (point < this.studyInfo['cost'])) {
             await this.goBase();
@@ -212,10 +208,10 @@ export class StudyRunner extends RunnerBase {
         }
 
         // 残りポイントをSTDOUTに出す
-        readline.clearLine(process.stdout, 0);
-        readline.cursorTo(process.stdout, 0);
-        process.stdout.write(`\r[ ${point} / 100 ]`);
-        process.stdout.write(` | cost: ${this.studyInfo['cost']}`);
+        // readline.clearLine(process.stdout, 0);
+        // readline.cursorTo(process.stdout, 0);
+        // process.stdout.write(`\r[ ${point} / 100 ]`);
+        // process.stdout.write(` | cost: ${this.studyInfo['cost']}`);
 
         // トグルが開いていない場合は開く
         const idx = `list${this.studyInfo['type']}${this.studyInfo['index']}`;
@@ -333,7 +329,7 @@ export class StudyRunner extends RunnerBase {
         try {
             while (this.phase === 'battle') {
                 const canvas = await this.page.waitForSelector('#canvas');
-                await this.page.waitFor(1600); // 初期アニメーション
+                await this.page.waitFor(3500); // 初期アニメーション
                 await canvas.click();
                 await this.page.waitFor(4300); // ローディングアニメーション（スーパーモヤモヤ含む）
 
@@ -341,22 +337,17 @@ export class StudyRunner extends RunnerBase {
                     // スキル必須の場合はスキル利用
                     await this.useSkills();
                 }
-                // クリック、その後に休む
+                // 攻撃クリック1回
                 await this.clickOnce();
-                // if (this.usingSkill) {
-                //     // スキル利用
-                //     await this.redo();
-                // }
+
                 await this.page.waitFor(600);
-                // sleep.sleep(3.14 + 2.718 * Math.random());
-                // リロード
                 await this.redo();
             }
         } catch (e) {
             this.logger.error(e);
         } finally {
-            // 完了後リロード
-            await this.redo();
+            // 完了後ホームに戻る
+            await this.goHome();
         }
     }
 
@@ -420,16 +411,21 @@ export class StudyRunner extends RunnerBase {
      *  @returns true: ダイアログが表示されている / false: ダイアログなし
      */
     async isDisplayedDialog(): Promise<boolean> {
+        // 中断ダイアログの可否をチェック
         try {
-            const popupSel = '.popupWindow';
-            await this.page.waitForSelector(popupSel, { timeout: 3000 });
-            const popup = await this.page.$(popupSel);
-            if (!popup) {
-                return Promise.resolve(false);
+            const display = await this.page.$eval('.js_popupReStartSelect', (item: Element) => {
+                const cls = item.getAttribute('class');
+                if (cls.includes('block')) {
+                    return true;
+                }
+                return false;
+            });
+            if (!display) {
+                return;
             }
-        } catch {
-            // セレクタが存在しない時は正常
-            return Promise.resolve(false);
+        } catch (e) {
+            // ダイアログ要素そのものが無い場合は開始時
+            return;
         }
 
         const button = await this.page.$('.js_restart.btn');
