@@ -128,7 +128,7 @@ export class StudyRunner extends RunnerBase {
         default:
             await this.page.waitFor(300);
             await this.goHome();
-            this.loggerOld.debug('[ Go quest home ]');
+            this.logger.debug('[ Go quest home ]');
             break;
         }
     }
@@ -139,7 +139,7 @@ export class StudyRunner extends RunnerBase {
      * @returns 空のpromiseオブジェクト
      */
     async startQuest(): Promise<void> {
-        this.loggerOld.debug('Start quest.');
+        this.logger.debug('Start quest.');
         await this.page.goto('https://vcard.ameba.jp/s#study/quest/select');
     }
 
@@ -148,7 +148,7 @@ export class StudyRunner extends RunnerBase {
      * @returns 空のpromiseオブジェクト
      */
     async selectQuest(): Promise<void> {
-        this.loggerOld.debug('Select quest.');
+        this.logger.debug('Select quest.');
 
         // ダイアログが表示されていたら飛ばす
         const isContinue = await this.isDisplayedDialog();
@@ -161,7 +161,7 @@ export class StudyRunner extends RunnerBase {
         const point = await this.page.$eval(pointSel, (item: Element) => {
             return Number(item.textContent);
         });
-        this.loggerOld.debug(`${point} / 100`);
+        this.logger.debug(`${point} / 100`);
 
         let tab: ElementHandle;
         let infoKey: string;
@@ -197,7 +197,7 @@ export class StudyRunner extends RunnerBase {
             infoKey = sphere + this.rank.toString();
         }
         this.studyInfo = studyList[infoKey];
-        this.loggerOld.debug(`next: ${this.studyInfo['name']}`);
+        this.logger.debug(`next: ${this.studyInfo['name']}`);
 
         // 残りポイント不足の時は待機してトップに戻る
         if (!this.usingSpark && (point < this.studyInfo['cost'])) {
@@ -233,7 +233,7 @@ export class StudyRunner extends RunnerBase {
         await this.page.click(buttonSel);
 
         if (this.usingSpark) {
-            this.loggerOld.debug('using spark.');
+            this.logger.debug('using spark.');
             await this.useSpark();
         }
     }
@@ -243,7 +243,7 @@ export class StudyRunner extends RunnerBase {
      * @returns 空のpromiseオブジェクト
      */
     async selectPartner(): Promise<void> {
-        this.loggerOld.debug('Select partner.');
+        this.logger.debug('Select partner.');
         await this.page.waitForSelector('section.bgTiffanyBlue');
 
         const partnersSel = 'section.bgTiffanyBlue > '
@@ -296,7 +296,7 @@ export class StudyRunner extends RunnerBase {
      * @returns 空のpromiseオブジェクト
      */
     async selectDeck(): Promise<void> {
-        this.loggerOld.debug('Select deck.');
+        this.logger.debug('Select deck.');
 
         // デッキタブの選択
         const deckSel = 'section[class="commonTab"] > ul > '
@@ -319,7 +319,7 @@ export class StudyRunner extends RunnerBase {
      * @returns 空のpromiseオブジェクト
      */
     async battle(): Promise<void> {
-        this.loggerOld.debug('battle.');
+        this.logger.debug('battle.');
 
         await this.page.waitFor(600);
 
@@ -344,7 +344,7 @@ export class StudyRunner extends RunnerBase {
                 await this.redo();
             }
         } catch (e) {
-            this.loggerOld.error(e);
+            this.logger.error(e);
         } finally {
             // 完了後ホームに戻る
             await this.goHome();
@@ -356,7 +356,7 @@ export class StudyRunner extends RunnerBase {
      * @returns 空のpromiseオブジェクト
      */
     async checkResult(): Promise<void> {
-        this.loggerOld.debug('Check Result.');
+        this.logger.debug('Check Result.');
         await this.page.goto('https://vcard.ameba.jp/s#study/quest/select');
     }
 
@@ -497,7 +497,7 @@ export class StudyRunner extends RunnerBase {
             const button = await popup.$('.js_continueBtn');
             if (button) {
                 process.stdout.write('\n[Continue]');
-                this.loggerOld.debug('[Continue]');
+                this.logger.debug('[Continue]');
                 await button.click();
             }
         } catch {

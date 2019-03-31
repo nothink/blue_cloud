@@ -65,6 +65,7 @@ typings/
 dst/
 log/
 Profile*/
+profs/
 
 config/*
 !config/default.json

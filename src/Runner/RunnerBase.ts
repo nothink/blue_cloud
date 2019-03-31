@@ -10,6 +10,7 @@ export default abstract class RunnerBase {
     browser!: puppeteer.Browser;
     page!: puppeteer.Page;
     mouse!: puppeteer.Mouse;
+    logger!: bunyan;
     loggerOld!: winston.Logger;
     isTerminated: boolean;
     config: config.IConfig;
@@ -21,26 +22,10 @@ export default abstract class RunnerBase {
      *  コンストラクタ
      */
     constructor() {
-        this.loggerOld = winston.createLogger({
-            transports: [
-                new winston.transports.File({
-                    level: 'info',
-                    handleExceptions: true,
-                    filename: 'log/runner.log',
-                    maxsize: 128 * 1024,
-                    tailable: true,
-                    format: winston.format.combine(
-                        winston.format.timestamp({
-                            format: 'YYYY/MM/DD HH:mm:ss' }),
-                        winston.format.json({ space: 4 }),
-                    )}),
-                new winston.transports.Console({
-                    level: 'error',
-                    format: winston.format.combine(
-                        winston.format.colorize({ all: true }),
-                        winston.format.cli(),
-                    )}),
-            ],
+        this.logger = bunyan.createLogger({
+            name: 'blue_cloud',
+            stream: process.stdout,
+            level: 'info',
         });
         this.config = config;
         this.baseUrl = this.config.get('baseUrl');
@@ -57,7 +42,7 @@ export default abstract class RunnerBase {
                 await this.browser.close();
             }
         } catch (e) {
-            this.loggerOld.error(e.message + e.stack);
+            this.logger.error(e.message + e.stack);
             throw e;
         } finally {
             process.exit(0);
@@ -69,7 +54,7 @@ export default abstract class RunnerBase {
      *  @returns 空のpromiseオブジェクト
      */
     async init(): Promise<void> {
-        this.loggerOld.info('launching browser...');
+        this.logger.info('launching browser...');
         this.browser = await puppeteer.launch({
             headless: this.config.get('chrome.headless'),
             devtools: this.config.get('chrome.devtools'),
@@ -129,7 +114,7 @@ export default abstract class RunnerBase {
                 await this.runOnce();
                 await this.page.waitFor(100);
             } catch (e) {
-                this.loggerOld.warn(e.stack);
+                this.logger.warn(e.stack);
                 console.log(e.stack);
                 await this.page.waitFor(300);
                 await this.redo();
@@ -199,7 +184,7 @@ export default abstract class RunnerBase {
      *  @returns 空のpromiseオブジェクト
      */
     async close(): Promise<void> {
-        this.loggerOld.info('closing browser...');
+        this.logger.info('closing browser...');
         await this.browser.close();
     }
 
