@@ -128,7 +128,7 @@ export class StudyRunner extends RunnerBase {
         default:
             await this.page.waitFor(300);
             await this.goHome();
-            this.logger.debug('[ Go quest home ]');
+            this.loggerOld.debug('[ Go quest home ]');
             break;
         }
     }
@@ -139,7 +139,7 @@ export class StudyRunner extends RunnerBase {
      * @returns 空のpromiseオブジェクト
      */
     async startQuest(): Promise<void> {
-        this.logger.debug('Start quest.');
+        this.loggerOld.debug('Start quest.');
         await this.page.goto('https://vcard.ameba.jp/s#study/quest/select');
     }
 
@@ -148,13 +148,11 @@ export class StudyRunner extends RunnerBase {
      * @returns 空のpromiseオブジェクト
      */
     async selectQuest(): Promise<void> {
-        this.logger.debug('Select quest.');
+        this.loggerOld.debug('Select quest.');
 
         // ダイアログが表示されていたら飛ばす
         const isContinue = await this.isDisplayedDialog();
         if (isContinue) {
-            this.logger.debug('is Continue.');
-            console.log('continue');
             return;
         }
 
@@ -163,7 +161,7 @@ export class StudyRunner extends RunnerBase {
         const point = await this.page.$eval(pointSel, (item: Element) => {
             return Number(item.textContent);
         });
-        this.logger.debug(`${point} / 100`);
+        this.loggerOld.debug(`${point} / 100`);
 
         let tab: ElementHandle;
         let infoKey: string;
@@ -179,25 +177,27 @@ export class StudyRunner extends RunnerBase {
             await this.page.waitFor(300);
 
             const divSel = 'div.bgCream.pt5.ph5.pb10 > div:nth-child(2) > div';
-            const sphere = await this.page.$$eval(divSel, (divs: Element[]) => {
-                for (let i = 0; i < divs.length; i += 1) {
-                    const attr = divs[i].getAttribute('class');
-                    if (attr.includes('Sweet')) {
-                        return 'SWEET';
+            const sphere = await this.page.$$eval(
+                divSel,
+                (divs: Element[]) => {
+                    for (let i = 0; i < divs.length; i += 1) {
+                        const attr = divs[i].getAttribute('class');
+                        if (attr.includes('Sweet')) {
+                            return 'SWEET';
+                        }
+                        if (attr.includes('Cool')) {
+                            return 'COOL';
+                        }
+                        if (attr.includes('Pop')) {
+                            return 'POP';
+                        }
                     }
-                    if (attr.includes('Cool')) {
-                        return 'COOL';
-                    }
-                    if (attr.includes('Pop')) {
-                        return 'POP';
-                    }
-                }
-            });
+                });
             this.dailySphere = sphere;
             infoKey = sphere + this.rank.toString();
         }
         this.studyInfo = studyList[infoKey];
-        this.logger.debug(`next: ${this.studyInfo['name']}`);
+        this.loggerOld.debug(`next: ${this.studyInfo['name']}`);
 
         // 残りポイント不足の時は待機してトップに戻る
         if (!this.usingSpark && (point < this.studyInfo['cost'])) {
@@ -233,7 +233,7 @@ export class StudyRunner extends RunnerBase {
         await this.page.click(buttonSel);
 
         if (this.usingSpark) {
-            this.logger.debug('using spark.');
+            this.loggerOld.debug('using spark.');
             await this.useSpark();
         }
     }
@@ -243,7 +243,7 @@ export class StudyRunner extends RunnerBase {
      * @returns 空のpromiseオブジェクト
      */
     async selectPartner(): Promise<void> {
-        this.logger.debug('Select partner.');
+        this.loggerOld.debug('Select partner.');
         await this.page.waitForSelector('section.bgTiffanyBlue');
 
         const partnersSel = 'section.bgTiffanyBlue > '
@@ -296,7 +296,7 @@ export class StudyRunner extends RunnerBase {
      * @returns 空のpromiseオブジェクト
      */
     async selectDeck(): Promise<void> {
-        this.logger.debug('Select deck.');
+        this.loggerOld.debug('Select deck.');
 
         // デッキタブの選択
         const deckSel = 'section[class="commonTab"] > ul > '
@@ -319,7 +319,7 @@ export class StudyRunner extends RunnerBase {
      * @returns 空のpromiseオブジェクト
      */
     async battle(): Promise<void> {
-        this.logger.debug('battle.');
+        this.loggerOld.debug('battle.');
 
         await this.page.waitFor(600);
 
@@ -331,7 +331,7 @@ export class StudyRunner extends RunnerBase {
                 const canvas = await this.page.waitForSelector('#canvas');
                 await this.page.waitFor(3500); // 初期アニメーション
                 await canvas.click();
-                await this.page.waitFor(4300); // ローディングアニメーション（スーパーモヤモヤ含む）
+                await this.page.waitFor(4300); // ローディングアニメーション
 
                 if (this.usingSkill) {
                     // スキル必須の場合はスキル利用
@@ -344,7 +344,7 @@ export class StudyRunner extends RunnerBase {
                 await this.redo();
             }
         } catch (e) {
-            this.logger.error(e);
+            this.loggerOld.error(e);
         } finally {
             // 完了後ホームに戻る
             await this.goHome();
@@ -356,7 +356,7 @@ export class StudyRunner extends RunnerBase {
      * @returns 空のpromiseオブジェクト
      */
     async checkResult(): Promise<void> {
-        this.logger.debug('Check Result.');
+        this.loggerOld.debug('Check Result.');
         await this.page.goto('https://vcard.ameba.jp/s#study/quest/select');
     }
 
@@ -413,13 +413,15 @@ export class StudyRunner extends RunnerBase {
     async isDisplayedDialog(): Promise<boolean> {
         // 中断ダイアログの可否をチェック
         try {
-            const display = await this.page.$eval('.js_popupReStartSelect', (item: Element) => {
-                const cls = item.getAttribute('class');
-                if (cls.includes('block')) {
-                    return true;
-                }
-                return false;
-            });
+            const display = await this.page.$eval(
+                '.js_popupReStartSelect',
+                (item: Element) => {
+                    const cls = item.getAttribute('class');
+                    if (cls.includes('block')) {
+                        return true;
+                    }
+                    return false;
+                });
             if (!display) {
                 return;
             }
@@ -495,7 +497,7 @@ export class StudyRunner extends RunnerBase {
             const button = await popup.$('.js_continueBtn');
             if (button) {
                 process.stdout.write('\n[Continue]');
-                this.logger.debug('[Continue]');
+                this.loggerOld.debug('[Continue]');
                 await button.click();
             }
         } catch {
@@ -529,7 +531,7 @@ export class StudyRunner extends RunnerBase {
             const canvas = await this.page.waitForSelector('#canvas');
             await this.page.waitFor(1600); // 初期アニメーション
             await canvas.click();
-            await this.page.waitFor(4300); // ローディングアニメーション（スーパーモヤモヤ含む）
+            await this.page.waitFor(4300); // ローディングアニメーション
         }
     }
 

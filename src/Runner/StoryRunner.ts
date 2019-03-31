@@ -22,18 +22,27 @@ export class StoryRunner extends RunnerBase {
         this.usingSpecial = this.config.get('story.usingSpecial');
 
         // ふむふむホーム（ふむふむの基準ページは、イベントIDとクエストIDに依存する）
-        this.homeUrl = `${this.config.get('storyHomeUrlBase')}?eventId=${this.eventId}&questId=${this.questId}`;
+        this.homeUrl = `${this.config.get('storyHomeUrlBase')}
+        ?eventId=${this.eventId}&questId=${this.questId}`;
     }
 
     /**
      *  現在の状態
      *  @returns    状態を表す文字列
-     *      quest (http://vcard.ameba.jp/story/quest?eventId=37&questId=3): ふむふむ状態
-     *      discovery-animation (http://vcard.ameba.jp/story/quest/discovery-animation?eventId=37&questId=3&stageId=6&type=0&token=OPOu6v) : 差し入れタイム開始
-     *      event (http://vcard.ameba.jp/story/quest/event?eventId=37&questId=3) : 差し入れ選択
-     *      event-animation (http://vcard.ameba.jp/story/quest/event-animation?eventId=37&questId=3&token=n2YDGc) : 差し入れ結果
+     *      quest: ふむふむ状態
+     *          (http://vcard.ameba.jp/story/quest?eventId=37&questId=3)
+     *      discovery-animation: 差し入れタイム開始
+     *          (http://vcard.ameba.jp/story/quest/discovery-animation?
+     *              eventId=37&questId=3&stageId=6&type=0&token=OPOu6v)
+     *      event: 差し入れ選択
+     *          (http://vcard.ameba.jp/story/quest/event?eventId=37&questId=3)
+     *      event-animation: 差し入れ結果
+     *          (http://vcard.ameba.jp/story/quest/event-animation?
+     *              eventId=37&questId=3&token=n2YDGc)
      *      levelup-animation (確認中) : レベルアップアニメーション
-     *      event-result　(http://vcard.ameba.jp/story/quest/event-result?eventId=37&questId=3) : リザルト画面
+     *      event-result: リザルト画面
+     *          (http://vcard.ameba.jp/story/quest/event-result?
+     *              eventId=37&questId=3)
      */
     get phase(): string {
         const current = url.parse(this.page.url());
@@ -75,7 +84,6 @@ export class StoryRunner extends RunnerBase {
 
         default:
             await this.goHome();
-            this.logger.debug('[ Go quest home ]');
             break;
         }
     }
@@ -108,12 +116,17 @@ export class StoryRunner extends RunnerBase {
      *  @returns 空のpromiseオブジェクト
      */
     async selectEventItem(): Promise<void> {
-        // ラブラブタイムの時間を取りに行き、取れたら保持、取れなかったらラブラブタイム以外
+        // ラブラブタイムの時間を取りに行き、取れたら保持
+        // 取れなかったらラブラブタイム以外
         let sec = 0;
         let isLoveLove: boolean;
         try {
             const area = await this.page.$('.loveloveModeTime');
-            const timestr = await this.page.evaluate((elem) => { return elem.textContent; }, area);
+            const timestr = await this.page.evaluate(
+                (elem) => {
+                    return elem.textContent;
+                },
+                area);
             const times = timestr.split(':');
             sec = parseInt(times[0], 10) * 60 + parseInt(times[1], 10);
             isLoveLove = true;
@@ -126,7 +139,6 @@ export class StoryRunner extends RunnerBase {
         });
 
         if (isLoveLove && isFever && (sec < 50) && this.usingSpecial) {
-            this.logger.debug('NEXT 10 min...');
             console.log(`Wait ${sec + 5}sec.`);
             await this.page.waitFor((sec + 5) * 1000);
             console.log('Use item.');
@@ -191,7 +203,11 @@ export class StoryRunner extends RunnerBase {
         const buttons = await this.page.$$('#outStamina a.btnShadow');
         while (buttons.length > 0) {
             const button = buttons.shift();
-            const title = await this.page.evaluate((item: Element) => { return item.textContent; }, button);
+            const title = await this.page.evaluate(
+                (item: Element) => {
+                    return item.textContent;
+                },
+                button);
             if (title === '使用する') {
                 const buttonBox = await button.boundingBox();
                 // 座標をクリック

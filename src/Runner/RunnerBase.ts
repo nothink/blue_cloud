@@ -1,6 +1,7 @@
 import * as puppeteer from 'puppeteer';
 import * as config from 'config';
 import * as winston from 'winston';
+import * as bunyan from 'bunyan';
 
 /**
  *  Puppeteerを用いたランナースクリプトのベースクラス
@@ -9,7 +10,7 @@ export default abstract class RunnerBase {
     browser!: puppeteer.Browser;
     page!: puppeteer.Page;
     mouse!: puppeteer.Mouse;
-    logger!: winston.Logger;
+    loggerOld!: winston.Logger;
     isTerminated: boolean;
     config: config.IConfig;
 
@@ -20,7 +21,7 @@ export default abstract class RunnerBase {
      *  コンストラクタ
      */
     constructor() {
-        this.logger = winston.createLogger({
+        this.loggerOld = winston.createLogger({
             transports: [
                 new winston.transports.File({
                     level: 'info',
@@ -56,7 +57,7 @@ export default abstract class RunnerBase {
                 await this.browser.close();
             }
         } catch (e) {
-            this.logger.error(e.message + e.stack);
+            this.loggerOld.error(e.message + e.stack);
             throw e;
         } finally {
             process.exit(0);
@@ -68,7 +69,7 @@ export default abstract class RunnerBase {
      *  @returns 空のpromiseオブジェクト
      */
     async init(): Promise<void> {
-        this.logger.info('launching browser...');
+        this.loggerOld.info('launching browser...');
         this.browser = await puppeteer.launch({
             headless: this.config.get('chrome.headless'),
             devtools: this.config.get('chrome.devtools'),
@@ -128,7 +129,7 @@ export default abstract class RunnerBase {
                 await this.runOnce();
                 await this.page.waitFor(100);
             } catch (e) {
-                this.logger.warn(e.stack);
+                this.loggerOld.warn(e.stack);
                 console.log(e.stack);
                 await this.page.waitFor(300);
                 await this.redo();
@@ -198,7 +199,7 @@ export default abstract class RunnerBase {
      *  @returns 空のpromiseオブジェクト
      */
     async close(): Promise<void> {
-        this.logger.info('closing browser...');
+        this.loggerOld.info('closing browser...');
         await this.browser.close();
     }
 
