@@ -87,31 +87,24 @@ export class ChampionshipRunner extends RunnerBase {
      *  @returns 空のpromiseオブジェクト
      */
     async runOnce(): Promise<void> {
-        let promise: Promise<void>;
         switch (this.phase) {
         case 'quest':
-            promise = this.walk();
-            break;
+            return this.walk();
         case 'encount-animation':
-            promise = this.skipEncount();
-            break;
+            return this.skipEncount();
         case 'user':
-            promise = this.userBattle();
-            break;
+            return this.userBattle();
         case 'boss':
-            promise = this.bossBattle();
-            break;
+            return this.bossBattle();
         case 'battle-animation':
-            promise = this.skipAnimation();
-            break;
+            return this.skipAnimation();
         case 'result':
-            promise = this.skipResult();
-            break;
+            return this.skipResult();
         default:
-            promise = this.goHome();
-            break;
+            await this.page.waitFor(300);
+            this.logger.warn(`unknown phase: "${this.phase}"`);
+            return this.goHome();
         }
-        return promise;
     }
 
     /**

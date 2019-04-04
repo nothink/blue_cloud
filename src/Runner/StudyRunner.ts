@@ -106,30 +106,24 @@ export class StudyRunner extends RunnerBase {
     async runOnce(): Promise<void> {
         // Phaseで切り替える
         switch (this.phase) {
+        case '':
         case 'top':
-            await this.startQuest();
-            break;
+            return this.startQuest();
         case 'quest':
-            await this.selectQuest();
-            break;
+            return this.selectQuest();
         case 'partner':
-            await this.selectPartner();
-            break;
+            return this.selectPartner();
         case 'deck':
-            await this.selectDeck();
-            break;
+            return this.selectDeck();
         case 'battle':
-            await this.battle();
-            break;
+            return this.battle();
         case 'result':
-            await this.checkResult();
-            break;
+            return this.checkResult();
 
         default:
             await this.page.waitFor(300);
-            await this.goHome();
-            this.logger.debug('[ Go quest home ]');
-            break;
+            this.logger.warn(`unknown phase: "${this.phase}"`);
+            return this.goHome();
         }
     }
 
@@ -139,7 +133,6 @@ export class StudyRunner extends RunnerBase {
      * @returns 空のpromiseオブジェクト
      */
     async startQuest(): Promise<void> {
-        this.logger.debug('Start quest.');
         await this.page.goto('https://vcard.ameba.jp/s#study/quest/select');
     }
 
@@ -148,18 +141,14 @@ export class StudyRunner extends RunnerBase {
      * @returns 空のpromiseオブジェクト
      */
     async selectQuest(): Promise<void> {
-        // ダイアログが表示されていたら飛ばす
+        // 中断ダイアログが表示されていたら飛ばす
         const isContinue = await this.isDisplayedDialog();
         if (isContinue) {
+            // コンティニュー直後は再判定
             return;
         }
 
-        const pointSel = 'div.cell.vTop.textRight > div > span:nth-child(1)';
-        await this.page.waitForSelector(pointSel, { timeout: 3000 });
-        const point = await this.page.$eval(pointSel, (item: Element) => {
-            return Number(item.textContent);
-        });
-        this.logger.debug(`${point} / 100`);
+        const conc = await this.getCurrentConcentration();
 
         let tab: ElementHandle;
         let infoKey: string;
@@ -198,10 +187,10 @@ export class StudyRunner extends RunnerBase {
         this.logger.debug(`next: ${this.studyInfo['name']}`);
 
         // 残りポイント不足の時は待機してトップに戻る
-        if (!this.usingSpark && (point < this.studyInfo['cost'])) {
+        if (!this.usingSpark && (conc < this.studyInfo['cost'])) {
             await this.goBase();
             await this.page.waitFor(1000);
-            await this.takeBreak(point);
+            await this.takeBreak(conc);
             return;
         }
 
@@ -331,20 +320,22 @@ export class StudyRunner extends RunnerBase {
                     // (タイミング的に)
                     break;
                 }
-                await this.page.waitFor(3500); // 初期アニメーション
+                await this.page.waitFor(3100); // 初期アニメーション
                 await canvas.click();
-                await this.page.waitFor(4300); // ローディングアニメーション
+                await this.page.waitFor(5300); // ローディングアニメーション
 
                 if (this.usingSkill) {
                     // スキル必須の場合はスキル利用
                     await this.useSkills();
                 }
+
                 // 攻撃クリック1回
+                await this.page.waitFor(2100); // 有効化待機
                 await this.clickOnce();
 
-                await this.page.waitFor(300);
+                await this.page.waitFor(600);
                 await this.redo();
-                await this.page.waitFor(300);
+                await this.page.waitFor(600);
             }
         } catch (e) {
             this.logger.error(e);
@@ -397,16 +388,15 @@ export class StudyRunner extends RunnerBase {
     }
 
     /**
-     *  勉強中のボタンを一度クリックする(20秒制限)
+     *  勉強中のボタンを一度クリックする
      *  @returns 空のpromiseオブジェクト
      */
     async clickOnce(): Promise<void> {
-        if (await this.page.$('.js_attackBtn')) {
-            const buttonSel = '.js_attackBtn.absolute.attackBtn.none.z3.block';
-            const button = await this.page.waitForSelector(
-                buttonSel, { timeout: 20000 });
-            await button.click();
-        }
+        const canvas = await this.page.$('#canvas');
+        const canvasBox = await canvas.boundingBox();
+        await this.page.mouse.click(
+            canvasBox.x + 220,
+            canvasBox.y + 350);
     }
 
     /**
@@ -561,20 +551,19 @@ export class StudyRunner extends RunnerBase {
                 const target = cards[count]['activeSkill']['target'];
                 if (remain === 0) {
                     // 残り時間なしの場合
-                    const mouse = this.page.mouse;
                     // 座標をクリック
-                    await mouse.click(
+                    await this.page.mouse.click(
                         canvasBox.x + 40 + (65 * x),
                         canvasBox.y + 240 + (65 * y));
                     await this.page.waitFor(1900);
                     // 発動ボタンをクリック
-                    await mouse.click(
+                    await this.page.mouse.click(
                         canvasBox.x + 210,
                         canvasBox.y + 370);
                     await this.page.waitFor(1900);
                     if (target === 1) {
                         // ターゲット単体のときはもう一度クリック
-                        await mouse.click(
+                        await this.page.mouse.click(
                             canvasBox.x + 210,
                             canvasBox.y + 370);
                         await this.page.waitFor(1900);
@@ -585,5 +574,21 @@ export class StudyRunner extends RunnerBase {
             }
         }
         return Promise.resolve(undefined);
+    }
+
+    /**
+     *  現在の集中ptを取得する
+     *  @returns 集中pt(0-100) / NaN: 取得失敗
+     */
+    async getCurrentConcentration(): Promise<number> {
+        const pointSel = 'div.cell.vTop.textRight > div > span:nth-child(1)';
+        if (await this.page.$(pointSel)) {
+            return this.page.$eval(
+                pointSel,
+                (item: Element) => {
+                    return Number(item.textContent);
+                });
+        }
+        return Promise.resolve(NaN);
     }
 }

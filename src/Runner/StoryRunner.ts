@@ -64,27 +64,22 @@ export class StoryRunner extends RunnerBase {
         // Phaseで切り替える
         switch (this.phase) {
         case 'quest':
-            await this.listenQuest();
-            break;
+            return this.listenQuest();
         case 'discovery-animation':
-            await this.passDiscoveryAnimation();
-            break;
+            return this.passDiscoveryAnimation();
         case 'event':
-            await this.selectEventItem();
-            break;
+            return this.selectEventItem();
         case 'event-animation':
-            await this.passEventAnimation();
-            break;
+            return this.passEventAnimation();
         case 'levelup-animation':
-            await this.passLevelupAnimation();
-            break;
+            return this.passLevelupAnimation();
         case 'event-result':
-            await this.checkEventResult();
-            break;
+            return this.checkEventResult();
 
         default:
-            await this.goHome();
-            break;
+            await this.page.waitFor(300);
+            this.logger.warn(`unknown phase: "${this.phase}"`);
+            return this.goHome();
         }
     }
 
