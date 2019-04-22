@@ -183,24 +183,20 @@ export class StudyRunner extends RunnerBase {
         } catch (e) {
             // 対象セレクタは閉じているので開く
             // this.page.click(closedSel);
-            console.log(1);
             this.page.$eval(closedSel, (item: Element) => {
                 const button = item as HTMLElement;
                 button.click();
             });
-            console.log(2);
             await this.page.waitFor(1000);
         }
 
         // クエストを選択（およびクリック）
         const buttonSel = `[data-state*="${this.studyInfo['id']}"]`;
         // await this.page.click(buttonSel);
-        console.log(3);
         await this.page.$eval(buttonSel, (item: Element) => {
             const button = item as HTMLElement;
             button.click();
         });
-        console.log(4);
 
         if (this.usingSpark) {
             this.logger.debug('using spark.');
