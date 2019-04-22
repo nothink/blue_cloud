@@ -10,5 +10,5 @@ declare module '*studylist.json' {
     }
 
     const value: { [index:string]: StudyInfo };
-    export = value;
+    export default value;
 }

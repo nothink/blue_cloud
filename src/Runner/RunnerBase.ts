@@ -1,6 +1,5 @@
 import * as puppeteer from 'puppeteer';
 import * as config from 'config';
-import * as winston from 'winston';
 import * as bunyan from 'bunyan';
 
 /**
@@ -10,12 +9,11 @@ export default abstract class RunnerBase {
     browser!: puppeteer.Browser;
     page!: puppeteer.Page;
     mouse!: puppeteer.Mouse;
-    logger!: bunyan;
-    loggerOld!: winston.Logger;
-    isTerminated: boolean;
+    logger: bunyan;
+    isTerminated!: boolean;
     config: config.IConfig;
 
-    baseUrl!: string;
+    baseUrl: string;
     abstract homeUrl: string;
 
     /**
@@ -40,9 +38,11 @@ export default abstract class RunnerBase {
         try {
             if (this.page) {
                 await this.page.close();
+                this.page = null;
             }
             if (this.browser) {
                 await this.browser.close();
+                this.browser = null;
             }
         } catch (e) {
             this.logger.error(e.message + e.stack);
@@ -121,7 +121,6 @@ export default abstract class RunnerBase {
                 await this.page.waitFor(100);
             } catch (e) {
                 this.logger.warn(e.stack);
-                console.log(e.stack);
                 await this.page.waitFor(300);
                 await this.redo();
             }
@@ -137,7 +136,7 @@ export default abstract class RunnerBase {
         while (!response) {
             try {
                 response = await this.page.reload({
-                    timeout: 2000,
+                    timeout: 20000,
                     waitUntil: 'networkidle2' });
             } catch {
                 response = null;

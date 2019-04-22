@@ -69,3 +69,5 @@ profs/
 
 config/*
 !config/default.json
+
+.vscode
