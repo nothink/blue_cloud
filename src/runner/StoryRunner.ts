@@ -22,8 +22,8 @@ export default class StoryRunner extends RunnerBase {
     this.usingSpecial = this.config.get('story.usingSpecial');
 
     // ふむふむホーム（ふむふむの基準ページは、イベントIDとクエストIDに依存する）
-    this.homeUrl = `${this.config.get('storyHomeUrlBase')}
-        ?eventId=${this.eventId}&questId=${this.questId}`;
+    this.homeUrl = `${this.config.get('storyHomeUrlBase')}`
+    + `?eventId=${this.eventId}&questId=${this.questId}`;
   }
 
   /**
@@ -63,6 +63,8 @@ export default class StoryRunner extends RunnerBase {
   async runOnce(): Promise<void> {
     // Phaseで切り替える
     switch (this.phase) {
+    case '':
+      return this.goHome();
     case 'quest':
       return this.listenQuest();
     case 'discovery-animation':
@@ -89,13 +91,26 @@ export default class StoryRunner extends RunnerBase {
    */
   async listenQuest(): Promise<void> {
     // ダイアログが表示されている場合飛ばす
-    await this.passDialog();
+    const usedBar = await this.isDisplayedDialog();
+    if (usedBar) {
+      // バー利用直後は再判定
+      return;
+    }
+
+    await this.page.waitFor(500);
 
     const button = await this.page.$('.questTouchArea');
-    const buttonBox = await button.boundingBox();
-    // 座標をクリック
-    const mouse = await this.page.mouse;
-    await mouse.click(buttonBox.x + 280, buttonBox.y + 280);
+    if (button) {
+      const buttonBox = await button.boundingBox();
+      if (buttonBox) {
+        // 座標をクリック
+        const mouse = await this.page.mouse;
+        await mouse.click(buttonBox.x + 280, buttonBox.y + 280);
+      } else {
+        // エリア取得失敗時はリロード
+        this.redo();
+      }
+    }
   }
 
   /**
@@ -165,7 +180,9 @@ export default class StoryRunner extends RunnerBase {
    *  @returns 空のpromiseオブジェクト
    */
   async passLevelupAnimation(): Promise<void> {
+    await this.page.waitFor(300);
     const canvas = await this.page.$('#canvas');
+    // TODO: ボタン飛ばし入れる？
     await canvas.click();
   }
 
@@ -179,22 +196,34 @@ export default class StoryRunner extends RunnerBase {
   }
 
   /**
-   *  スタミナ不足時のダイアログを飛ばす
-   *  @returns 空のpromiseオブジェクト
+   *  中断ダイアログが表示されているかどうかをチェックして
+   *  もし表示されていたらダイアログを飛ばす
+   *  @returns true: ダイアログが表示されている / false: ダイアログなし
    */
-  async passDialog(): Promise<void> {
-    const popupSel = '.popup#outStamina[style*="block"]';
+  async isDisplayedDialog(): Promise<boolean> {
+    // 中断ダイアログの可否をチェック
     try {
-      await this.page.waitForSelector(popupSel, { timeout: 300 });
+      const popupSel = '.popup#outStamina';
+      if (await this.page.$(popupSel)) {
+        const display = await this.page.$eval(
+          popupSel,
+          (item: Element) => {
+            const style = item.getAttribute('style');
+            if (style.includes('block')) {
+              return true;
+            }
+            return false;
+          });
+        if (!display) {
+          // ダイアログ非表示
+          return Promise.resolve(false);
+        }
+      }
     } catch (e) {
-      // セレクタが存在しない時は正常
-      return;
+      // ダイアログ要素そのものが無い場合はページ違い
+      return Promise.resolve(false);
     }
 
-    const popup = await this.page.$(popupSel);
-    if (!popup) {
-      return;
-    }
     const buttons = await this.page.$$('#outStamina a.btnShadow');
     while (buttons.length > 0) {
       const button = buttons.shift();
@@ -211,9 +240,9 @@ export default class StoryRunner extends RunnerBase {
         const confirm = await this.page.$('#confirmPopOkBtn');
         const confirmBox = await confirm.boundingBox();
         await mouse.click(confirmBox.x + 80, confirmBox.y + 20);
-        return;
+        return Promise.resolve(true);
       }
     }
-    return;
+    return Promise.resolve(false);
   }
 }
