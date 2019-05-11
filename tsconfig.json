@@ -1,12 +1,13 @@
 {
     "compilerOptions": {
-        "target": "es2017",
+        "target": "es2018",
         "module": "commonjs",
         "sourceMap": true,
         "rootDir": "src",
         "outDir": "dst",
+        "baseUrl": ".",
         "lib": [
-            "es2016",
+            "es2018",
             "dom"
         ]
     },

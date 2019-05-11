@@ -5,7 +5,7 @@ import * as url from 'url';
 import * as moment from 'moment';
 import * as readline from 'readline';
 
-import * as studyList from '../../studylist.json';
+import * as studyList from '../../json/studylist.json';
 
 /**
  * テスト勉強用のランナースクリプト
