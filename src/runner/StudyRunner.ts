@@ -16,7 +16,7 @@ export default class StudyRunner extends RunnerBase {
   studyInfo!: any; // StudyInfo型
   usingSpark: boolean;
   usingSkill: boolean;
-  dailySphere!: string;
+  dailySphere!: 'SWEET' | 'COOL' | 'POP';
   homeUrl: string;
 
   /**
