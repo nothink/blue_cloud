@@ -1,15 +1,16 @@
-import RunnerBase from './base/RunnerBase';
+import RunnerBase from "./base/RunnerBase";
 
-import * as url from 'url';
+import * as url from "url";
 
 /**
  * ふむふむ（聖櫻学園物語）用のランナースクリプト
  */
 export default class StoryRunner extends RunnerBase {
-  homeUrl!: string;
-  eventId!: number;
-  questId!: number;
-  usingSpecial!: boolean;
+  protected homeUrl!: string;
+
+  private eventId!: number;
+  private questId!: number;
+  private usingSpecial!: boolean;
 
   /**
    *  コンストラクタ
@@ -17,12 +18,12 @@ export default class StoryRunner extends RunnerBase {
   constructor() {
     super();
 
-    this.eventId = this.config.get('story.eventId');
-    this.questId = this.config.get('story.questId');
-    this.usingSpecial = this.config.get('story.usingSpecial');
+    this.eventId = this.config.get("story.eventId");
+    this.questId = this.config.get("story.questId");
+    this.usingSpecial = this.config.get("story.usingSpecial");
 
     // ふむふむホーム（ふむふむの基準ページは、イベントIDとクエストIDに依存する）
-    this.homeUrl = `${this.config.get('storyHomeUrlBase')}`
+    this.homeUrl = `${this.config.get("storyHomeUrlBase")}`
     + `?eventId=${this.eventId}&questId=${this.questId}`;
   }
 
@@ -46,11 +47,11 @@ export default class StoryRunner extends RunnerBase {
    */
   get phase(): string {
     const current = url.parse(this.page.url());
-    if (!current || !current.pathname || current.pathname === '/') {
+    if (!current || !current.pathname || current.pathname === "/") {
       // 初回、ないしは該当なしの場合は空ステータス
-      return '';
+      return "";
     }
-    const fragms = current.pathname.split('/');
+    const fragms = current.pathname.split("/");
     // 基本的にfragmentの末尾で判定するためpop()
     const ftail = fragms.pop();
     return ftail;
@@ -60,22 +61,22 @@ export default class StoryRunner extends RunnerBase {
    *  ループ実行の一単位 (override)
    *  @returns 空のpromiseオブジェクト
    */
-  async runOnce(): Promise<void> {
+  protected async runOnce(): Promise<void> {
     // Phaseで切り替える
     switch (this.phase) {
-    case '':
+    case "":
       return this.goHome();
-    case 'quest':
+    case "quest":
       return this.listenQuest();
-    case 'discovery-animation':
+    case "discovery-animation":
       return this.passDiscoveryAnimation();
-    case 'event':
+    case "event":
       return this.selectEventItem();
-    case 'event-animation':
+    case "event-animation":
       return this.passEventAnimation();
-    case 'levelup-animation':
+    case "levelup-animation":
       return this.passLevelupAnimation();
-    case 'event-result':
+    case "event-result":
       return this.checkEventResult();
 
     default:
@@ -89,7 +90,7 @@ export default class StoryRunner extends RunnerBase {
    *  ふむふむボタンを押す
    *  @returns 空のpromiseオブジェクト
    */
-  async listenQuest(): Promise<void> {
+  private async listenQuest(): Promise<void> {
     // ダイアログが表示されている場合飛ばす
     const usedBar = await this.isDisplayedDialog();
     if (usedBar) {
@@ -99,7 +100,7 @@ export default class StoryRunner extends RunnerBase {
 
     await this.page.waitFor(500);
 
-    const button = await this.page.$('.questTouchArea');
+    const button = await this.page.$(".questTouchArea");
     if (button) {
       const buttonBox = await button.boundingBox();
       if (buttonBox) {
@@ -117,7 +118,7 @@ export default class StoryRunner extends RunnerBase {
    *  差し入れタイムのアニメーションを飛ばす
    *  @returns 空のpromiseオブジェクト
    */
-  async passDiscoveryAnimation(): Promise<void> {
+  private async passDiscoveryAnimation(): Promise<void> {
     await this.page.waitFor(2100);
   }
 
@@ -125,40 +126,38 @@ export default class StoryRunner extends RunnerBase {
    *  差し入れアイテムのボタンをいずれか押す
    *  @returns 空のpromiseオブジェクト
    */
-  async selectEventItem(): Promise<void> {
+  private async selectEventItem(): Promise<void> {
     // ラブラブタイムの時間を取りに行き、取れたら保持
     // 取れなかったらラブラブタイム以外
     let sec = 0;
     let isLoveLove: boolean;
     try {
-      const area = await this.page.$('.loveloveModeTime');
+      const area = await this.page.$(".loveloveModeTime");
       const timestr = await this.page.evaluate(
         (elem) => {
           return elem.textContent;
         },
         area);
-      const times = timestr.split(':');
+      const times = timestr.split(":");
       sec = parseInt(times[0], 10) * 60 + parseInt(times[1], 10);
       isLoveLove = true;
     } catch (e) {
       isLoveLove = false;
     }
     // フィーバー（ラブラブ差し入れ）かのチェック
-    const isFever = await this.page.$eval('h1', (elem) => {
-      return elem.getAttribute('class') === 'eventFeverTitle';
+    const isFever = await this.page.$eval("h1", (elem) => {
+      return elem.getAttribute("class") === "eventFeverTitle";
     });
 
     if (isLoveLove && isFever && (sec < 50) && this.usingSpecial) {
-      console.log(`Wait ${sec + 5}sec.`);
       await this.page.waitFor((sec + 5) * 1000);
-      console.log('Use item.');
-      const button = await this.page.$('#js_openItemPopup');
+      const button = await this.page.$("#js_openItemPopup");
       await button.click();
       await this.page.waitFor(200);
-      const confirm = await this.page.$('#js_specialItemButton');
+      const confirm = await this.page.$("#js_specialItemButton");
       confirm.click();
     } else {
-      const button = await this.page.$('#js_normalItemButton');
+      const button = await this.page.$("#js_normalItemButton");
       await button.click();
     }
   }
@@ -167,8 +166,8 @@ export default class StoryRunner extends RunnerBase {
    *  差し入れ時のイベントアニメーションを飛ばす
    *  @returns 空のpromiseオブジェクト
    */
-  async passEventAnimation(): Promise<void> {
-    const canvas = await this.page.$('#canvas');
+  private async passEventAnimation(): Promise<void> {
+    const canvas = await this.page.$("#canvas");
     const canvasBox = await canvas.boundingBox();
     const mouse = await this.page.mouse;
     // 座標をクリック
@@ -179,9 +178,9 @@ export default class StoryRunner extends RunnerBase {
    *  イベントレベルアップアニメーションを飛ばす
    *  @returns 空のpromiseオブジェクト
    */
-  async passLevelupAnimation(): Promise<void> {
+  private async passLevelupAnimation(): Promise<void> {
     await this.page.waitFor(300);
-    const canvas = await this.page.$('#canvas');
+    const canvas = await this.page.$("#canvas");
     // TODO: ボタン飛ばし入れる？
     await canvas.click();
   }
@@ -190,8 +189,8 @@ export default class StoryRunner extends RunnerBase {
    *  イベント終了時の画面を閉じてふむふむ画面に戻る
    *  @returns 空のpromiseオブジェクト
    */
-  async checkEventResult(): Promise<void> {
-    const button = await this.page.$('.btnPrimary');
+  private async checkEventResult(): Promise<void> {
+    const button = await this.page.$(".btnPrimary");
     await button.click();
   }
 
@@ -200,16 +199,16 @@ export default class StoryRunner extends RunnerBase {
    *  もし表示されていたらダイアログを飛ばす
    *  @returns true: ダイアログが表示されている / false: ダイアログなし
    */
-  async isDisplayedDialog(): Promise<boolean> {
+  private async isDisplayedDialog(): Promise<boolean> {
     // 中断ダイアログの可否をチェック
     try {
-      const popupSel = '.popup#outStamina';
+      const popupSel = ".popup#outStamina";
       if (await this.page.$(popupSel)) {
         const display = await this.page.$eval(
           popupSel,
           (item: Element) => {
-            const style = item.getAttribute('style');
-            if (style.includes('block')) {
+            const style = item.getAttribute("style");
+            if (style.includes("block")) {
               return true;
             }
             return false;
@@ -224,7 +223,7 @@ export default class StoryRunner extends RunnerBase {
       return Promise.resolve(false);
     }
 
-    const buttons = await this.page.$$('#outStamina a.btnShadow');
+    const buttons = await this.page.$$("#outStamina a.btnShadow");
     while (buttons.length > 0) {
       const button = buttons.shift();
       const title = await this.page.evaluate(
@@ -232,12 +231,12 @@ export default class StoryRunner extends RunnerBase {
           return item.textContent;
         },
         button);
-      if (title === '使用する') {
+      if (title === "使用する") {
         const buttonBox = await button.boundingBox();
         // 座標をクリック
         const mouse = await this.page.mouse;
         await mouse.click(buttonBox.x + 80, buttonBox.y + 20);
-        const confirm = await this.page.$('#confirmPopOkBtn');
+        const confirm = await this.page.$("#confirmPopOkBtn");
         const confirmBox = await confirm.boundingBox();
         await mouse.click(confirmBox.x + 80, confirmBox.y + 20);
         return Promise.resolve(true);

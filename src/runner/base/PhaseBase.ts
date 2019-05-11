@@ -1,4 +1,4 @@
-import RunnerBase from './RunnerBase';
+import RunnerBase from "./RunnerBase";
 
 // TODO: Abstract Factory パターンを用いてPhase生成を単純化したい
 // https://refactoring.guru/design-patterns/abstract-factory/typescript/example
@@ -19,7 +19,7 @@ import RunnerBase from './RunnerBase';
  *  単一の段階(単一URL遷移)で行う処理単位
  */
 export default abstract class PhaseBase {
-  runner!: RunnerBase;
+  protected runner!: RunnerBase;
 
   /**
    *  コンストラクタ
@@ -32,5 +32,5 @@ export default abstract class PhaseBase {
    *  単一処理の一単位 (abstract)
    *  @returns 空のpromiseオブジェクト
    */
-  async abstract proceed(): Promise<void>;
+  protected abstract async proceed(): Promise<void>;
 }
