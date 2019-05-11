@@ -1,7 +1,7 @@
-import RunnerBase from "./base/RunnerBase";
+import RunnerBase from './base/RunnerBase';
 
-import * as fs from "fs";
-import * as url from "url";
+import * as fs from 'fs';
+import * as url from 'url';
 
 /**
  *  カリスマ決定戦用のランナースクリプト
@@ -9,7 +9,7 @@ import * as url from "url";
 export default class ChampionshipRunner extends RunnerBase {
   protected homeUrl!: string;
 
-  private usingCandy!: boolean;
+  // private usingCandy!: boolean;
   private expected!: number;
 
   /**
@@ -18,17 +18,18 @@ export default class ChampionshipRunner extends RunnerBase {
   constructor() {
     super();
 
-    this.usingCandy = this.config.get("championship.usingCandy");
+    // this.usingCandy = this.config.get("championship.usingCandy");
+
     // カリスマホーム
-    this.homeUrl = this.config.get("championshipHomeUrl");
+    this.homeUrl = this.config.get('championshipHomeUrl');
 
     // 一時保存した発揮値をリストア
     const tmpPath = `config/${process.env.NODE_ENV}.tmp`;
     try {
       fs.statSync(tmpPath);
-      this.expected = parseInt(fs.readFileSync(tmpPath, "utf-8"), 10);
+      this.expected = parseInt(fs.readFileSync(tmpPath, 'utf-8'), 10);
     } catch (e) {
-      this.expected = undefined;
+      this.expected = NaN;
     }
   }
 
@@ -66,15 +67,15 @@ export default class ChampionshipRunner extends RunnerBase {
    */
   get phase(): string {
     const current = url.parse(this.page.url());
-    if (!current || !current.pathname || current.pathname === "/") {
+    if (!current || !current.pathname || current.pathname === '/') {
       // 初回、ないしは該当なしの場合は空ステータス
-      return "";
+      return '';
     }
-    const fragms = current.pathname.split("/");
+    const fragms = current.pathname.split('/');
     // 基本的にfragmentの末尾で判定するためpop()
-    const ftail = fragms.pop();
-    if (ftail === "detail") {
-      if (fragms[2] === "battle") {
+    const ftail = fragms.pop() || '';
+    if (ftail === 'detail') {
+      if (fragms[2] === 'battle') {
         return fragms[3];
       }
       return fragms[2];
@@ -88,22 +89,22 @@ export default class ChampionshipRunner extends RunnerBase {
    */
   protected async runOnce(): Promise<void> {
     switch (this.phase) {
-    case "quest":
-      return this.walk();
-    case "encount-animation":
-      return this.skipEncount();
-    case "user":
-      return this.userBattle();
-    case "boss":
-      return this.bossBattle();
-    case "battle-animation":
-      return this.skipAnimation();
-    case "result":
-      return this.skipResult();
-    default:
-      await this.page.waitFor(300);
-      this.logger.warn(`unknown phase: "${this.phase}"`);
-      return this.goHome();
+      case 'quest':
+        return this.walk();
+      case 'encount-animation':
+        return this.skipEncount();
+      case 'user':
+        return this.userBattle();
+      case 'boss':
+        return this.bossBattle();
+      case 'battle-animation':
+        return this.skipAnimation();
+      case 'result':
+        return this.skipResult();
+      default:
+        await this.page.waitFor(300);
+        this.logger.warn(`unknown phase: "${this.phase}"`);
+        return this.goHome();
     }
   }
 
@@ -113,7 +114,7 @@ export default class ChampionshipRunner extends RunnerBase {
    */
   private async walk(): Promise<void> {
     // ボタン存在可否
-    const button = await this.page.$("#js_btnFight");
+    const button = await this.page.$('#js_btnFight');
     while (button) {
       // ダイアログが表示されている場合飛ばす
       await this.passDialog();
@@ -121,39 +122,46 @@ export default class ChampionshipRunner extends RunnerBase {
       // クリック可否性チェック
       let clickable: boolean;
       try {
-        clickable = await this.page.$eval(
-          "#js_btnFight",
-          (item: Element) => {
-            const cls = item.getAttribute("class");
-            if (cls.includes("btnFightOn")) {
-              return true;
-            }
-            return false;
-          });
+        clickable = await this.page.$eval('#js_btnFight', (item: Element) => {
+          const cls = item.getAttribute('class') || '';
+          if (cls.includes('btnFightOn')) {
+            return true;
+          }
+          return false;
+        });
       } catch (e) {
         return;
       }
       if (clickable) {
         const buttonBox = await button.boundingBox();
+        if (!buttonBox) {
+          this.logger.warn('Unclickable (walk button)');
+          return;
+        }
         await this.page.mouse.click(buttonBox.x + 12, buttonBox.y + 12);
 
         const status = await Promise.all([
           this.getHearts(),
-          this.getCurrentScene()]);
+          this.getCurrentScene(),
+        ]);
         // ゲージ満タンかのチェック
         const life = status[0];
         const scene = status[1];
         // アピールタイムで目標のライフを確保したかチェック
-        const appealIcon = await this.page.$(".js_appealTime");
-        if (scene === "user" && life > 1) {
-          const iconBox = await appealIcon.boundingBox();
-          await this.page.mouse.click(iconBox.x + 7, iconBox.y + 7);
-          return;
-        }
-        if (scene === "boss" && life === 5) {
-          const iconBox = await appealIcon.boundingBox();
-          await this.page.mouse.click(iconBox.x + 7, iconBox.y + 7);
-          return;
+        const appealIcon = await this.page.$('.js_appealTime');
+        if (appealIcon) {
+          if (
+            (scene === 'user' && life > 1) ||
+            (scene === 'boss' && life === 5)
+          ) {
+            const iconBox = await appealIcon.boundingBox();
+            if (!iconBox) {
+              this.logger.warn('Unclickable (appeal button)');
+              return;
+            }
+            await this.page.mouse.click(iconBox.x + 7, iconBox.y + 7);
+            return;
+          }
         }
       } else {
         // 0.1秒待機
@@ -167,14 +175,16 @@ export default class ChampionshipRunner extends RunnerBase {
    *  @returns 空のpromiseオブジェクト
    */
   private async userBattle(): Promise<void> {
-    const mySel = "body > div.gfContentBgFlower > div > div > div > \
+    const mySel =
+      'body > div.gfContentBgFlower > div > div > div > \
         div.gfOutlineFrame > div > section:nth-child(1) > div:nth-child(2) > \
         div.clearfix.fcWhite.fs12.ph5.pt10 > div.floatLeft.half > \
-        p:nth-child(2)";
-    const tgtSel = "body > div.gfContentBgFlower > div > div > div > \
+        p:nth-child(2)';
+    const tgtSel =
+      'body > div.gfContentBgFlower > div > div > div > \
         div.gfOutlineFrame > div > section:nth-child(1) > div:nth-child(2) > \
         div.clearfix.fcWhite.fs12.ph5.pt10 > div.floatRight.half.textRight > \
-        p:nth-child(2)";
+        p:nth-child(2)';
     const status = await Promise.all([
       this.page.$eval(mySel, (item: Element) => {
         return Number(item.textContent);
@@ -182,22 +192,25 @@ export default class ChampionshipRunner extends RunnerBase {
       this.page.$eval(tgtSel, (item: Element) => {
         return Number(item.textContent);
       }),
-      this.getHearts()]);
+      this.getHearts(),
+    ]);
 
     const myAttack = status[0];
     const tgtAttack = status[1];
     const hearts = status[2];
     // ライフ消費は、自分の攻が相手の1.1倍だったら1つ、それ以外は2とする
-    const needLife = (myAttack > tgtAttack * 1.1) ? 1 : 2;
+    const needLife = myAttack > tgtAttack * 1.1 ? 1 : 2;
     if (hearts < needLife) {
       // エリアに戻る
       this.goHome();
       return;
     }
-    const buttonDivs = await this.page.$$(".js_heartSelectionBtn");
+    const buttonDivs = await this.page.$$('.js_heartSelectionBtn');
     const button = buttonDivs[needLife - 1];
     const buttonBox = await button.boundingBox();
-    await this.page.mouse.click(buttonBox.x + 1, buttonBox.y + 1);
+    if (buttonBox) {
+      await this.page.mouse.click(buttonBox.x + 1, buttonBox.y + 1);
+    }
   }
 
   /**
@@ -205,25 +218,30 @@ export default class ChampionshipRunner extends RunnerBase {
    *  @returns 空のpromiseオブジェクト
    */
   private async bossBattle(): Promise<void> {
-    const curSel = "body > div.gfContentBgFlower > div > div > div > \
+    const curSel =
+      'body > div.gfContentBgFlower > div > div > div > \
         div.gfOutlineFrame > div > section.ofHidden > div > \
         div.dropShadow.relative.z1 > div.textCenter.relative.fs12 > \
-        span.fcPink.outlineWhite";
-    const maxSel = "body > div.gfContentBgFlower > div > div > div > \
+        span.fcPink.outlineWhite';
+    const maxSel =
+      'body > div.gfContentBgFlower > div > div > div > \
         div.gfOutlineFrame > div > section.ofHidden > div > \
         div.dropShadow.relative.z1 > div.textCenter.relative.fs12 > \
-        span:nth-child(2)";
+        span:nth-child(2)';
     const status = await Promise.all([
       this.page.$eval(curSel, (item: Element) => {
-        return Number(item.textContent.replace(/,/g, ""));
+        const text = item.textContent || '';
+        return Number(text.replace(/,/g, ''));
       }),
       this.page.$eval(maxSel, (item: Element) => {
-        return Number(item.textContent.substring(1).replace(/,/g, ""));
+        const text = item.textContent || '';
+        return Number(text.substring(1).replace(/,/g, ''));
       }),
       this.getHearts(),
       this.isFullGauge(),
       this.hasBuff(),
-      this.isRare()]);
+      this.isRare(),
+    ]);
 
     const current = status[0];
     const max = status[1];
@@ -263,16 +281,22 @@ export default class ChampionshipRunner extends RunnerBase {
 
     if (isFullGauge && !hasBuff && isRare) {
       // ゲージ満タン, バフ未発動, レア敵の時はバフ着火ボタンを押す
-      const fire = await this.page.$(".js_fireStealth");
-      const fireBox = await fire.boundingBox();
-      await this.page.mouse.click(fireBox.x + 1, fireBox.y + 1);
-      await this.page.waitFor(900);
+      const fire = await this.page.$('.js_fireStealth');
+      if (fire) {
+        const fireBox = await fire.boundingBox();
+        if (fireBox) {
+          await this.page.mouse.click(fireBox.x + 1, fireBox.y + 1);
+          await this.page.waitFor(900);
+        }
+      }
     }
 
-    const buttonDivs = await this.page.$$(".js_heartSelectionBtn");
+    const buttonDivs = await this.page.$$('.js_heartSelectionBtn');
     const button = await buttonDivs[needLife - 1];
     const buttonBox = await button.boundingBox();
-    await this.page.mouse.click(buttonBox.x + 1, buttonBox.y + 1);
+    if (buttonBox) {
+      await this.page.mouse.click(buttonBox.x + 1, buttonBox.y + 1);
+    }
   }
 
   /**
@@ -288,10 +312,12 @@ export default class ChampionshipRunner extends RunnerBase {
    *  @returns 空のpromiseオブジェクト
    */
   private async skipResult(): Promise<void> {
-    const selector = ".btnPrimary.jsTouchActive";
+    const selector = '.btnPrimary.jsTouchActive';
     try {
       const button = await this.page.$(selector);
-      await button.click();
+      if (button) {
+        await button.click();
+      }
     } catch (e) {
       // ボタンなしは無視していい
       return;
@@ -303,7 +329,7 @@ export default class ChampionshipRunner extends RunnerBase {
    *  @returns 空のpromiseオブジェクト
    */
   private async skipEncount(): Promise<void> {
-    const canvas = await this.page.$("#canvas");
+    const canvas = await this.page.$('#canvas');
     try {
       while (canvas) {
         // canvasが無くなるまでクリック
@@ -325,35 +351,42 @@ export default class ChampionshipRunner extends RunnerBase {
    */
   private async passDialog(): Promise<void> {
     // スタミナ不足ダイアログの可否をチェック
-    const display = await this.page.$eval(
-      "#outStamina",
-      (item: Element) => {
-        const style = item.getAttribute("style");
-        if (style.includes("block")) {
-          return true;
-        }
-        return false;
-      });
+    const display = await this.page.$eval('#outStamina', (item: Element) => {
+      const style = item.getAttribute('style') || '';
+      if (style.includes('block')) {
+        return true;
+      }
+      return false;
+    });
     if (!display) {
       return;
     }
 
-    const buttons = await this.page.$$("#outStamina a.btnShadow");
+    const buttons = await this.page.$$('#outStamina a.btnShadow');
     while (buttons.length > 0) {
       const button = buttons.shift();
-      const title = await this.page.evaluate(
-        (item: Element) => {
+      if (button) {
+        const title = await this.page.evaluate((item: Element) => {
           return item.textContent;
-        },
-        button);
-      if (title === "使用する") {
-        const buttonBox = await button.boundingBox();
-        // 座標をクリック
-        await this.page.mouse.click(buttonBox.x + 80, buttonBox.y + 20);
-        const confirm = await this.page.$("#confirmPopOkBtn");
-        const confirmBox = await confirm.boundingBox();
-        await this.page.mouse.click(confirmBox.x + 80, confirmBox.y + 20);
-        return;
+        }, button);
+        if (title === '使用する') {
+          const buttonBox = await button.boundingBox();
+          // 座標をクリック
+          if (buttonBox) {
+            await this.page.mouse.click(buttonBox.x + 80, buttonBox.y + 20);
+            const confirm = await this.page.$('#confirmPopOkBtn');
+            if (confirm) {
+              const confirmBox = await confirm.boundingBox();
+              if (confirmBox) {
+                await this.page.mouse.click(
+                  confirmBox.x + 80,
+                  confirmBox.y + 20,
+                );
+                return;
+              }
+            }
+          }
+        }
       }
     }
     return;
@@ -364,7 +397,7 @@ export default class ChampionshipRunner extends RunnerBase {
    *  @returns 現在のハートの数のプロミスオブジェクト(0-5)
    */
   private async getHearts(): Promise<number> {
-    const hearts = await this.page.$$(".inlineBlock.heartOn.js_heartOn");
+    const hearts = await this.page.$$('.inlineBlock.heartOn.js_heartOn');
     return Promise.resolve(hearts.length);
   }
 
@@ -373,21 +406,22 @@ export default class ChampionshipRunner extends RunnerBase {
    *  @returns booleanのPromise
    */
   private async isRare(): Promise<boolean> {
-    const rareSel = "body > div.gfContentBgFlower > div > div > div > \
+    const rareSel =
+      'body > div.gfContentBgFlower > div > div > div > \
         div.gfOutlineFrame > div > section.ofHidden > div > \
         div.dropShadow.relative.z1 > div.table.fill.pt3.pb1 > \
-        div:nth-child(1) > img";
+        div:nth-child(1) > img';
     try {
       await this.page.waitForSelector(rareSel, { timeout: 300 });
-      return Promise.resolve(await this.page.$eval(
-        rareSel,
-        (item: Element) => {
+      return Promise.resolve(
+        await this.page.$eval(rareSel, (item: Element) => {
           const src = (item as HTMLImageElement).src;
-          if (src.includes("icon_rare")) {
+          if (src.includes('icon_rare')) {
             return Promise.resolve(true);
           }
           return Promise.resolve(false);
-        }));
+        }),
+      );
     } catch (e) {
       // セレクタが存在しない時は通常
       return Promise.resolve(false);
@@ -399,7 +433,7 @@ export default class ChampionshipRunner extends RunnerBase {
    *  @returns booleanのPromise
    */
   private async isFullGauge(): Promise<boolean> {
-    if (await this.page.$(".gaugeFullAnime")) {
+    if (await this.page.$('.gaugeFullAnime')) {
       return Promise.resolve(true);
     }
     return Promise.resolve(false);
@@ -410,10 +444,10 @@ export default class ChampionshipRunner extends RunnerBase {
    *  @returns booleanのPromise
    */
   private async hasBuff(): Promise<boolean> {
-    if (await this.page.$(".js_attackBuff")) {
-      return await this.page.$eval(".js_attackBuff", (item) => {
-        const cls = item.getAttribute("class");
-        if (cls.includes("none")) {
+    if (await this.page.$('.js_attackBuff')) {
+      return this.page.$eval('.js_attackBuff', item => {
+        const cls = item.getAttribute('class') || '';
+        if (cls.includes('none')) {
           return Promise.resolve(false);
         }
         return Promise.resolve(true);
@@ -430,17 +464,19 @@ export default class ChampionshipRunner extends RunnerBase {
    *  @returns stringのPromise (boss/user)かundefined
    */
   private async getCurrentScene(): Promise<string> {
-    if (await this.page.$(".js_appealTime")) {
-      return await this.page.$eval(".js_appealTime", (item: Element) => {
+    if (await this.page.$('.js_appealTime')) {
+      const scene = await this.page.$eval('.js_appealTime', (item: Element) => {
         const href = (item as HTMLAnchorElement).href;
-        if (href.includes("boss")) {
-          return Promise.resolve("boss");
+        if (href.includes('boss')) {
+          return Promise.resolve('boss');
         }
-        if (href.includes("user")) {
-          return Promise.resolve("user");
+        if (href.includes('user')) {
+          return Promise.resolve('user');
         }
+        return '';
       });
+      return scene;
     }
-    return Promise.resolve(undefined);
+    return Promise.resolve('');
   }
 }

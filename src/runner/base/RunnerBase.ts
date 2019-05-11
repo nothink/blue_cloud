@@ -1,6 +1,6 @@
-import * as bunyan from "bunyan";
-import * as config from "config";
-import * as puppeteer from "puppeteer";
+import * as bunyan from 'bunyan';
+import * as config from 'config';
+import * as puppeteer from 'puppeteer';
 
 /**
  *  Puppeteerを用いたランナースクリプトのベースクラス
@@ -21,12 +21,12 @@ export default abstract class RunnerBase {
    */
   constructor() {
     this.logger = bunyan.createLogger({
-      level: "info",
-      name: "blue_cloud",
+      level: 'info',
+      name: 'blue_cloud',
       stream: process.stdout,
     });
     this.config = config;
-    this.baseUrl = this.config.get("baseUrl");
+    this.baseUrl = this.config.get('baseUrl');
   }
 
   /**
@@ -34,29 +34,29 @@ export default abstract class RunnerBase {
    *  @returns 空のpromiseオブジェクト
    */
   public async init(): Promise<void> {
-    this.logger.info("launching browser...");
+    this.logger.info('launching browser...');
     this.browser = await puppeteer.launch({
-      args: this.config.get("chrome.args"),
-      devtools: this.config.get("chrome.devtools"),
-      executablePath: this.config.get("chrome.executablePath"),
-      headless: this.config.get("chrome.headless"),
-      slowMo: this.config.get("chrome.slowMo"),
-      userDataDir: this.config.get("chrome.profilePath"),
+      args: this.config.get('chrome.args'),
+      devtools: this.config.get('chrome.devtools'),
+      executablePath: this.config.get('chrome.executablePath'),
+      headless: this.config.get('chrome.headless'),
+      slowMo: this.config.get('chrome.slowMo'),
+      userDataDir: this.config.get('chrome.profilePath'),
     });
     // 終了時にterminateを呼ぶ
-    this.browser.on("disconnected", this.terminate);
+    this.browser.on('disconnected', this.terminate);
 
     // クラッシュ等の対策で既存ページすべて閉じる
-    (await this.browser.pages()).forEach((p) => {
+    (await this.browser.pages()).forEach(p => {
       p.close();
     });
 
     this.page = await this.browser.newPage();
-    await this.page.setViewport(this.config.get("viewport"));
+    await this.page.setViewport(this.config.get('viewport'));
     // ベースURL(ameba先頭)へ
-    await this.page.goto(this.baseUrl, { waitUntil: "networkidle2" });
+    await this.page.goto(this.baseUrl, { waitUntil: 'networkidle2' });
 
-    if (this.page.url().includes("dauth.user.ameba.jp")) {
+    if (this.page.url().includes('dauth.user.ameba.jp')) {
       // dauth.user.ameba.jpへとURL遷移したらログインページと認識
       await this.page.waitFor("input[class='btn btn_primary large']");
       this.page.click("input[class='btn btn_primary large']");
@@ -64,21 +64,19 @@ export default abstract class RunnerBase {
 
       await this.page.type(
         "input[name='accountId']",
-        this.config.get("account.username"),
+        this.config.get('account.username'),
       );
       await this.page.type(
         "input[name='password']",
-        this.config.get("account.password"),
+        this.config.get('account.password'),
       );
 
-      this.page.click(
-        "input[class='c-btn c-btn--large c-btn--primary']",
-      );
+      this.page.click("input[class='c-btn c-btn--large c-btn--primary']");
       await this.page.waitForNavigation();
       return;
     }
     // ページ終了時にもterminateを呼ぶ
-    this.browser.on("targetdestroyed", this.terminate);
+    this.browser.on('targetdestroyed', this.terminate);
   }
 
   /**
@@ -87,14 +85,14 @@ export default abstract class RunnerBase {
    */
   public async run(): Promise<void> {
     this.isTerminated = false;
-    process.on("SIGHUP", this.terminate);
-    process.on("SIGINT", this.terminate);
-    process.on("SIGTERM", this.terminate);
+    process.on('SIGHUP', this.terminate);
+    process.on('SIGINT', this.terminate);
+    process.on('SIGTERM', this.terminate);
 
     while (!this.isTerminated) {
       try {
         await this.skipIfError();
-        await this.runOnce();   // アクションひとつ
+        await this.runOnce(); // アクションひとつ
         await this.page.waitFor(100);
       } catch (e) {
         this.logger.warn(e.stack);
@@ -109,7 +107,7 @@ export default abstract class RunnerBase {
    *  @returns 空のpromiseオブジェクト
    */
   public async close(): Promise<void> {
-    this.logger.info("closing browser...");
+    this.logger.info('closing browser...');
     await this.browser.close();
   }
 
@@ -118,19 +116,17 @@ export default abstract class RunnerBase {
    *  @returns 空のpromiseオブジェクト
    */
   protected async redo(): Promise<void> {
-    let response: puppeteer.Response;
-    while (!response) {
+    let isOk: boolean = false;
+    while (!isOk) {
       try {
-        response = await this.page.reload({
+        const response = await this.page.reload({
           timeout: 20000,
-          waitUntil: "networkidle2",
+          waitUntil: 'networkidle2',
         });
+        isOk = response.ok();
       } catch {
-        response = null;
+        isOk = false;
       } finally {
-        if (!response || !response.ok()) {
-          response = null;
-        }
         await this.page.waitFor(500);
       }
     }
@@ -141,7 +137,7 @@ export default abstract class RunnerBase {
    *  @returns 空のpromiseオブジェクト
    */
   protected async goBaseHome(): Promise<void> {
-    await this.page.goto(this.baseUrl, { waitUntil: "networkidle2" });
+    await this.page.goto(this.baseUrl, { waitUntil: 'networkidle2' });
   }
 
   /**
@@ -149,7 +145,7 @@ export default abstract class RunnerBase {
    *  @returns 空のpromiseオブジェクト
    */
   protected async goHome(): Promise<void> {
-    await this.page.goto(this.homeUrl, { waitUntil: "networkidle2" });
+    await this.page.goto(this.homeUrl, { waitUntil: 'networkidle2' });
   }
 
   /**
@@ -164,12 +160,12 @@ export default abstract class RunnerBase {
    */
   private async skipIfError(): Promise<void> {
     try {
-      const h1Sel = "h1";
+      const h1Sel = 'h1';
       if (await this.page.$(h1Sel)) {
         const heading = await this.page.$eval(h1Sel, (h1: Element) => {
           return h1.textContent;
         });
-        if (heading === "エラー") {
+        if (heading === 'エラー') {
           await this.page.waitFor(300);
           await this.goHome();
         }
@@ -189,11 +185,9 @@ export default abstract class RunnerBase {
     try {
       if (this.page) {
         await this.page.close();
-        this.page = null;
       }
       if (this.browser) {
         await this.browser.close();
-        this.browser = null;
       }
     } catch (e) {
       this.logger.error(e.message + e.stack);

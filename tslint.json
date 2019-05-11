@@ -1,5 +1,11 @@
 {
-    "extends": ["tslint:recommended"],
+    "extends": [
+        "tslint:latest",
+        "tslint-config-airbnb",
+        "tslint-config-prettier",
+        "tslint-eslint-rules"
+    ],
+    "rulesDirectory": ["tslint-plugin-prettier"],
     "rules": {
         "indent": [true, "spaces", 2],
         "interface-name": [false],

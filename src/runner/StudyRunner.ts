@@ -1,11 +1,11 @@
-import RunnerBase from "./base/RunnerBase";
+import RunnerBase from './base/RunnerBase';
 
-import * as moment from "moment";
-import { ElementHandle } from "puppeteer";
-import * as readline from "readline";
-import * as url from "url";
+import * as moment from 'moment';
+import { ElementHandle } from 'puppeteer';
+import * as readline from 'readline';
+import * as url from 'url';
 
-import * as studyList from "../../json/studylist.json";
+import * as studyList from '../../json/studylist.json';
 
 /**
  * テスト勉強用のランナースクリプト
@@ -18,7 +18,7 @@ export default class StudyRunner extends RunnerBase {
   private studyInfo!: any; // StudyInfo型
   private usingSpark: boolean;
   private usingSkill: boolean;
-  private dailySphere!: "SWEET" | "COOL" | "POP";
+  private dailySphere!: 'SWEET' | 'COOL' | 'POP' | '';
 
   /**
    *  コンストラクタ
@@ -27,17 +27,17 @@ export default class StudyRunner extends RunnerBase {
     super();
 
     // テスト勉強ホーム
-    this.homeUrl = this.config.get("studyHomeUrl");
+    this.homeUrl = this.config.get('studyHomeUrl');
 
-    this.studyTarget = studyTarget || "level";
-    if (["level", "ring"].indexOf(this.studyTarget) === -1) {
+    this.studyTarget = studyTarget || 'level';
+    if (['level', 'ring'].indexOf(this.studyTarget) === -1) {
       throw Error(`Unknown Target: ${this.studyTarget}`);
     }
 
-    this.rank = this.config.get("study.testRank") || 1;
+    this.rank = this.config.get('study.testRank') || 1;
 
-    this.usingSpark = this.config.get("study.usingSpark");
-    this.usingSkill = this.config.get("study.usingSkill");
+    this.usingSpark = this.config.get('study.usingSpark');
+    this.usingSkill = this.config.get('study.usingSkill');
   }
 
   /**
@@ -63,22 +63,22 @@ export default class StudyRunner extends RunnerBase {
     const current = url.parse(this.page.url());
     if (!current || !current.pathname) {
       // 初回、ないしは該当なしの場合は空ステータス
-      return "";
+      return '';
     }
-    if (current.pathname === "/study/battle") {
+    if (current.pathname === '/study/battle') {
       // battleのみfragmentが存在しない特殊なフォーマット
-      return "battle";
+      return 'battle';
     }
     if (!current.hash) {
       // battle以外はfragmentがない場合は空ステータス
-      return "";
+      return '';
     }
-    const fragms = current.hash.replace("#", "").split("/");
+    const fragms = current.hash.replace('#', '').split('/');
     // 基本的にfragmentの末尾で判定するためpop()
-    let ftail = fragms.pop();
-    if (ftail === "select") {
+    let ftail = fragms.pop() || '';
+    if (ftail === 'select') {
       // 選択画面系は何の選択かで分類(fragmentの後ろから2番目)するので再度pop()
-      ftail = fragms.pop();
+      ftail = fragms.pop() || '';
     }
     return ftail;
   }
@@ -89,14 +89,14 @@ export default class StudyRunner extends RunnerBase {
    */
   get advantageSphere(): string {
     switch (this.dailySphere) {
-    case "SWEET":
-      return "POP";
-    case "COOL":
-      return "SWEET";
-    case "POP":
-      return "COOL";
-    default:
-      return null;
+      case 'SWEET':
+        return 'POP';
+      case 'COOL':
+        return 'SWEET';
+      case 'POP':
+        return 'COOL';
+      default:
+        return '';
     }
   }
 
@@ -107,24 +107,24 @@ export default class StudyRunner extends RunnerBase {
   protected async runOnce(): Promise<void> {
     // Phaseで切り替える
     switch (this.phase) {
-    case "":
-    case "top":
-      return this.startQuest();
-    case "quest":
-      return this.selectQuest();
-    case "partner":
-      return this.selectPartner();
-    case "deck":
-      return this.selectDeck();
-    case "battle":
-      return this.battle();
-    case "result":
-      return this.checkResult();
+      case '':
+      case 'top':
+        return this.startQuest();
+      case 'quest':
+        return this.selectQuest();
+      case 'partner':
+        return this.selectPartner();
+      case 'deck':
+        return this.selectDeck();
+      case 'battle':
+        return this.battle();
+      case 'result':
+        return this.checkResult();
 
-    default:
-      await this.page.waitFor(300);
-      this.logger.warn(`unknown phase: "${this.phase}"`);
-      return this.goHome();
+      default:
+        await this.page.waitFor(300);
+        this.logger.warn(`unknown phase: "${this.phase}"`);
+        return this.goHome();
     }
   }
 
@@ -134,10 +134,9 @@ export default class StudyRunner extends RunnerBase {
    * @returns 空のpromiseオブジェクト
    */
   private async startQuest(): Promise<void> {
-    await this.page.goto(
-      "https://vcard.ameba.jp/s#study/quest/select",
-      { waitUntil: "networkidle2" },
-    );
+    await this.page.goto('https://vcard.ameba.jp/s#study/quest/select', {
+      waitUntil: 'networkidle2',
+    });
   }
 
   /**
@@ -157,7 +156,7 @@ export default class StudyRunner extends RunnerBase {
     await this.clickScenarioTab();
 
     // 残りポイント不足の時は待機してトップに戻る
-    if (!this.usingSpark && (conc < this.studyInfo.cost)) {
+    if (!this.usingSpark && conc < this.studyInfo.cost) {
       await this.goBaseHome();
       await this.page.waitFor(1000);
       await this.takeBreak(conc);
@@ -179,7 +178,7 @@ export default class StudyRunner extends RunnerBase {
       if (await this.page.$(openSel)) {
         // 対象セレクタは開いている
       } else {
-        throw new EvalError("closed.");
+        throw new EvalError('closed.');
       }
     } catch (e) {
       // 対象セレクタは閉じているので開く
@@ -200,7 +199,7 @@ export default class StudyRunner extends RunnerBase {
     });
 
     if (this.usingSpark) {
-      this.logger.debug("using spark.");
+      this.logger.debug('using spark.');
       await this.useSpark();
     }
   }
@@ -210,38 +209,40 @@ export default class StudyRunner extends RunnerBase {
    * @returns 空のpromiseオブジェクト
    */
   private async selectPartner(): Promise<void> {
-    this.logger.debug("Select partner.");
+    this.logger.debug('Select partner.');
     await this.page.waitFor(1000);
 
-    const partnersSel = "section.bgTiffanyBlue > \
+    const partnersSel =
+      "section.bgTiffanyBlue > \
         div.relative.bgPartner.pt5 > div[data-href='#study/deck/select']";
 
     const partners = await this.page.$$(partnersSel);
-    if (this.studyTarget === "level") {
+    if (this.studyTarget === 'level') {
       // 通常の時はランダムで選択
       const i = Math.floor(Math.random() * partners.length);
       await partners[i].click();
-    } else if (this.studyTarget === "ring") {
+    } else if (this.studyTarget === 'ring') {
       // スペシャルの場合は属性で吟味する
-      let top: ElementHandle;
+      let top: ElementHandle = partners[0];
       let topAtk = 0;
-      let best: ElementHandle;
+      let best: ElementHandle = partners[0];
       let bestAtk = 0;
       // 最も攻援が高く、できれば得意属性のパートナーを検索
       for (const p of partners) {
         const info = await p.$eval(
           "div[data-group='detail']",
           (detail: Element) => {
-            return JSON.parse(detail.getAttribute("data-json"));
-          });
+            const attr = detail.getAttribute('data-json') || '';
+            return JSON.parse(attr);
+          },
+        );
         const infoPartner = info.parent;
         if (topAtk < infoPartner.attack) {
           // 一番攻援が高いパートナーを保持
           top = p;
           topAtk = infoPartner.attack;
         }
-        if (infoPartner.girlSphereName ===
-          this.advantageSphere.toLowerCase()) {
+        if (infoPartner.girlSphereName === this.advantageSphere.toLowerCase()) {
           if (bestAtk < infoPartner.attack) {
             // 一番攻援が高いパートナーを保持
             best = p;
@@ -261,12 +262,12 @@ export default class StudyRunner extends RunnerBase {
    * @returns 空のpromiseオブジェクト
    */
   private async selectDeck(): Promise<void> {
-    this.logger.debug("Select deck.");
+    this.logger.debug('Select deck.');
     await this.page.waitFor(1000);
 
     // デッキタブの選択
-    const deckSel = "section[class='commonTab'] > ul > "
-      + "li[data-group='decks']";
+    const deckSel =
+      "section[class='commonTab'] > ul > " + "li[data-group='decks']";
     const decks = await this.page.$$(deckSel);
     const deckCnt = this.studyInfo.deck - 1;
     await decks[deckCnt].click();
@@ -275,8 +276,10 @@ export default class StudyRunner extends RunnerBase {
     // デッキエリアのボタンを探してクリック
     const areaSel = "div[data-group='decks']";
     const areas = await this.page.$$(areaSel);
-    const button = await areas[deckCnt].$(".btnPrimary");
-    await button.click();
+    const button = await areas[deckCnt].$('.btnPrimary');
+    if (button) {
+      await button.click();
+    }
   }
 
   /**
@@ -284,7 +287,7 @@ export default class StudyRunner extends RunnerBase {
    * @returns 空のpromiseオブジェクト
    */
   private async battle(): Promise<void> {
-    this.logger.debug("battle.");
+    this.logger.debug('battle.');
 
     await this.page.waitFor(600);
 
@@ -292,8 +295,8 @@ export default class StudyRunner extends RunnerBase {
     await this.passIfContinue();
 
     try {
-      while (this.phase === "battle") {
-        const canvas = await this.page.$("#canvas");
+      while (this.phase === 'battle') {
+        const canvas = await this.page.$('#canvas');
         if (!canvas) {
           // canvasなしはphase終了と同じ扱い
           // (タイミング的に)
@@ -328,7 +331,7 @@ export default class StudyRunner extends RunnerBase {
    * @returns 空のpromiseオブジェクト
    */
   private async checkResult(): Promise<void> {
-    this.logger.debug("Check Result.");
+    this.logger.debug('Check Result.');
     await this.startQuest();
   }
 
@@ -341,19 +344,22 @@ export default class StudyRunner extends RunnerBase {
    */
   private async takeBreak(current: number): Promise<void> {
     const delta = 100 - current;
-    const next = moment().add(delta * 60, "second");
+    const next = moment().add(delta * 60, 'second');
     let left = next.diff(moment());
     while (left > 0) {
-      const leftStr = moment(left).utc().format("H:mm:ss");
-      const nextStr = next.format("MM/DD HH:mm:ss");
-      process.stdout.write(`\r[next: ${nextStr}]: `
-        + `${leftStr} remaining...`);
+      const leftStr = moment(left)
+        .utc()
+        .format('H:mm:ss');
+      const nextStr = next.format('MM/DD HH:mm:ss');
+      process.stdout.write(
+        `\r[next: ${nextStr}]: ` + `${leftStr} remaining...`,
+      );
       await this.page.waitFor(200);
       left = next.diff(moment());
     }
     readline.clearLine(process.stdout, 0);
     readline.cursorTo(process.stdout, 0);
-    process.stdout.write("Reboot...");
+    process.stdout.write('Reboot...');
 
     while (true) {
       try {
@@ -371,11 +377,13 @@ export default class StudyRunner extends RunnerBase {
    *  @returns 空のpromiseオブジェクト
    */
   private async clickOnce(): Promise<void> {
-    const canvas = await this.page.$("#canvas");
-    const canvasBox = await canvas.boundingBox();
-    await this.page.mouse.click(
-      canvasBox.x + 220,
-      canvasBox.y + 350);
+    const canvas = await this.page.$('#canvas');
+    if (canvas) {
+      const canvasBox = await canvas.boundingBox();
+      if (canvasBox) {
+        await this.page.mouse.click(canvasBox.x + 220, canvasBox.y + 350);
+      }
+    }
   }
 
   /**
@@ -386,17 +394,15 @@ export default class StudyRunner extends RunnerBase {
   private async isDisplayedDialog(): Promise<boolean> {
     // 中断ダイアログの可否をチェック
     try {
-      const dialogSel = ".js_popupReStartSelect";
+      const dialogSel = '.js_popupReStartSelect';
       if (await this.page.$(dialogSel)) {
-        const display = await this.page.$eval(
-          dialogSel,
-          (item: Element) => {
-            const cls = item.getAttribute("class");
-            if (cls.includes("block")) {
-              return true;
-            }
-            return false;
-          });
+        const display = await this.page.$eval(dialogSel, (item: Element) => {
+          const cls = item.getAttribute('class') || '';
+          if (cls.includes('block')) {
+            return true;
+          }
+          return false;
+        });
         if (!display) {
           // ダイアログ非表示
           return Promise.resolve(false);
@@ -408,7 +414,7 @@ export default class StudyRunner extends RunnerBase {
     }
 
     // 再開ボタンが存在する時
-    const button = await this.page.$(".js_restart.btn");
+    const button = await this.page.$('.js_restart.btn');
     if (button) {
       await button.click();
       return Promise.resolve(true);
@@ -430,7 +436,7 @@ export default class StudyRunner extends RunnerBase {
    */
   private async useSpark(): Promise<void> {
     try {
-      const popupSel = ".js_output.absolute.block";
+      const popupSel = '.js_output.absolute.block';
       const popup = await this.page.$(popupSel);
       if (!popup) {
         return;
@@ -440,12 +446,12 @@ export default class StudyRunner extends RunnerBase {
       return;
     }
 
-    const button = await this.page.$(".js_restart.btn");
+    const button = await this.page.$('.js_restart.btn');
     if (button) {
       await button.click();
       return;
     }
-    const healSel = ".btn.btnPrimary.js_updateAp";
+    const healSel = '.btn.btnPrimary.js_updateAp';
     const healButton = await this.page.$(healSel);
     if (healButton) {
       try {
@@ -463,16 +469,18 @@ export default class StudyRunner extends RunnerBase {
    *  @returns 空のpromiseオブジェクト
    */
   private async passIfContinue(): Promise<void> {
-    const popSel = ".js_outPutPopupContinueMenu.homeMenu.z5.none.block";
+    const popSel = '.js_outPutPopupContinueMenu.homeMenu.z5.none.block';
     try {
       // await this.page.waitForSelector(popSel, { timeout: 2000 });
       const popup = await this.page.$(popSel);
       // コンテニューボタン側をクリック
-      const button = await popup.$(".js_continueBtn");
-      if (button) {
-        process.stdout.write("\n[Continue]");
-        this.logger.debug("[Continue]");
-        await button.click();
+      if (popup) {
+        const button = await popup.$('.js_continueBtn');
+        if (button) {
+          process.stdout.write('\n[Continue]');
+          this.logger.debug('[Continue]');
+          await button.click();
+        }
       }
     } catch (e) {
       // セレクタが存在しないのが正常
@@ -485,7 +493,7 @@ export default class StudyRunner extends RunnerBase {
    *  @returns 空のpromiseオブジェクト
    */
   private async useSkills(): Promise<void> {
-    const round = await this.page.evaluate("INIT_JSON.enemy.roundNum");
+    const round = await this.page.evaluate('INIT_JSON.enemy.roundNum');
     if (round < 5) {
       // 5ラウンドミッションの最終ラウンド以外は使う必要はない
       return;
@@ -502,10 +510,12 @@ export default class StudyRunner extends RunnerBase {
         this.logger.warn(e.stack);
       }
       await this.redo();
-      const canvas = await this.page.$("#canvas");
-      await this.page.waitFor(1600); // 初期アニメーション
-      await canvas.click();
-      await this.page.waitFor(4300); // ローディングアニメーション
+      const canvas = await this.page.$('#canvas');
+      if (canvas) {
+        await this.page.waitFor(1600); // 初期アニメーション
+        await canvas.click();
+        await this.page.waitFor(4300); // ローディングアニメーション
+      }
     }
   }
 
@@ -514,10 +524,17 @@ export default class StudyRunner extends RunnerBase {
    *  @returns 発動したスキル番号(0-9) / undefined: 発動可能スキルなし
    */
   private async useSkillSomeone(): Promise<number> {
-    const canvas = await this.page.$("#canvas");
+    const canvas = await this.page.$('#canvas');
+    if (!canvas) {
+      return Promise.resolve(NaN);
+    }
     const canvasBox = await canvas.boundingBox();
+    if (!canvasBox) {
+      return Promise.resolve(NaN);
+    }
     const cards = await this.page.evaluate(
-      "window.MainCtl.module.iconArea.cards");
+      'window.MainCtl.module.iconArea.cards',
+    );
     for (let y = 0; y < 3; y += 1) {
       for (let x = 0; x < 3; x += 1) {
         const count = y * 3 + x;
@@ -531,19 +548,16 @@ export default class StudyRunner extends RunnerBase {
           // 残り時間なしの場合
           // 座標をクリック
           await this.page.mouse.click(
-            canvasBox.x + 40 + (65 * x),
-            canvasBox.y + 240 + (65 * y));
+            canvasBox.x + 40 + 65 * x,
+            canvasBox.y + 240 + 65 * y,
+          );
           await this.page.waitFor(1900);
           // 発動ボタンをクリック
-          await this.page.mouse.click(
-            canvasBox.x + 210,
-            canvasBox.y + 370);
+          await this.page.mouse.click(canvasBox.x + 210, canvasBox.y + 370);
           await this.page.waitFor(1900);
           if (target === 1) {
             // ターゲット単体のときはもう一度クリック
-            await this.page.mouse.click(
-              canvasBox.x + 210,
-              canvasBox.y + 370);
+            await this.page.mouse.click(canvasBox.x + 210, canvasBox.y + 370);
             await this.page.waitFor(1900);
           }
           // 発動したスキルの番号を返す
@@ -551,7 +565,7 @@ export default class StudyRunner extends RunnerBase {
         }
       }
     }
-    return Promise.resolve(undefined);
+    return Promise.resolve(NaN);
   }
 
   /**
@@ -559,13 +573,11 @@ export default class StudyRunner extends RunnerBase {
    *  @returns 集中pt(0-100) / NaN: 取得失敗
    */
   private async getCurrentConcentration(): Promise<number> {
-    const pointSel = "div.cell.vTop.textRight > div > span:nth-child(1)";
+    const pointSel = 'div.cell.vTop.textRight > div > span:nth-child(1)';
     if (await this.page.$(pointSel)) {
-      return this.page.$eval(
-        pointSel,
-        (item: Element) => {
-          return Number(item.textContent);
-        });
+      return this.page.$eval(pointSel, (item: Element) => {
+        return Number(item.textContent);
+      });
     }
     return Promise.resolve(NaN);
   }
@@ -577,35 +589,36 @@ export default class StudyRunner extends RunnerBase {
   private async clickScenarioTab(): Promise<void> {
     let infoKey: string;
 
-    const tabSel = ".js_btnTab.js_btnScenario";
+    const tabSel = '.js_btnTab.js_btnScenario';
     const tabs = await this.page.$$(tabSel);
-    if (this.studyTarget === "level") {
+    if (this.studyTarget === 'level') {
       // tabs[0] が選択されているはず
       await tabs[0].click();
-      infoKey = "TOM";
-    } else if (this.studyTarget === "ring") {
+      infoKey = 'TOM';
+    } else if (this.studyTarget === 'ring') {
       await tabs[1].click();
       await this.page.waitFor(300);
 
-      const divSel = "div.bgCream.pt5.ph5.pb10 > div:nth-child(2) > div";
-      const sphere = await this.page.$$eval(
-        divSel,
-        (divs: Element[]) => {
-          for (const d of divs) {
-            const attr = d.getAttribute("class");
-            if (attr.includes("Sweet")) {
-              return "SWEET";
-            }
-            if (attr.includes("Cool")) {
-              return "COOL";
-            }
-            if (attr.includes("Pop")) {
-              return "POP";
-            }
+      const divSel = 'div.bgCream.pt5.ph5.pb10 > div:nth-child(2) > div';
+      const sphere = await this.page.$$eval(divSel, (divs: Element[]) => {
+        for (const d of divs) {
+          const attr = d.getAttribute('class') || '';
+          if (attr.includes('Sweet')) {
+            return 'SWEET';
           }
-        });
+          if (attr.includes('Cool')) {
+            return 'COOL';
+          }
+          if (attr.includes('Pop')) {
+            return 'POP';
+          }
+        }
+        return '';
+      });
       this.dailySphere = sphere;
       infoKey = sphere + this.rank.toString();
+    } else {
+      infoKey = '';
     }
     this.studyInfo = studyList[infoKey];
   }

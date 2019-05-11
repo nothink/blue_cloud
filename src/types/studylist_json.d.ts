@@ -1,5 +1,4 @@
-declare module "*studylist.json" {
-
+declare module '*studylist.json' {
   interface StudyInfo {
     type: string;
     index: number;

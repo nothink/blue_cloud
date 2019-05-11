@@ -1,15 +1,18 @@
 {
     "compilerOptions": {
+        "baseUrl": ".",
         "target": "es2018",
         "module": "commonjs",
         "sourceMap": true,
+        "allowJs": true,
         "rootDir": "src",
         "outDir": "dst",
-        "baseUrl": ".",
         "lib": [
             "es2018",
             "dom"
-        ]
+        ],
+        "strictNullChecks": true,
+        "noUnusedLocals": true
     },
     "formatCodeOptions": {
         "indentSize": 2

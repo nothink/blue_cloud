@@ -1,4 +1,4 @@
-import RunnerBase from "./RunnerBase";
+import RunnerBase from './RunnerBase';
 
 // TODO: Abstract Factory パターンを用いてPhase生成を単純化したい
 // https://refactoring.guru/design-patterns/abstract-factory/typescript/example
