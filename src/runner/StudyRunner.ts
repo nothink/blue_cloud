@@ -14,7 +14,7 @@ export default class StudyRunner extends RunnerBase {
   public studyTarget!: string; // Phase行き
   public rank!: number; // Phase行き
   public studyInfo!: any; // StudyInfo型
-  public deckNum: number;
+  public deckNum: number = NaN;
 
   protected homeUrl: string;
 

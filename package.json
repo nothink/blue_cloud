@@ -45,11 +45,11 @@
     },
     "lint-staged": {
         "*.ts": [
-          "prettier --write",
-          "git add"
+            "prettier --write",
+            "git add"
         ]
-      },
-        "prettier": {
+    },
+    "prettier": {
         "bracketSpacing": true,
         "printWidth": 80,
         "semi": true,

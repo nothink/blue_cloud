@@ -6,11 +6,11 @@ import * as puppeteer from 'puppeteer';
  *  Puppeteerを用いたランナースクリプトのベースクラス
  */
 export default abstract class RunnerBase {
+  public logger!: bunyan;
   public page!: puppeteer.Page;
 
   protected browser!: puppeteer.Browser;
   protected mouse!: puppeteer.Mouse;
-  protected logger: bunyan;
   protected isTerminated!: boolean;
   protected config: config.IConfig;
 

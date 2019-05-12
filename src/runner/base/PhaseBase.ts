@@ -1,5 +1,6 @@
-import RunnerBase from './RunnerBase';
+import StudyRunner from '../StudyRunner';
 
+import * as bunyan from 'bunyan';
 import * as puppeteer from 'puppeteer';
 
 // TODO: Abstract Factory パターンを用いてPhase生成を単純化したい
@@ -16,16 +17,29 @@ import * as puppeteer from 'puppeteer';
  *  Puppeteerを用いたランナースクリプトの
  *  単一の段階(単一URL遷移)で行う処理単位
  */
-export default abstract class PhaseBase {
-  protected runner!: RunnerBase;
-  protected page!: puppeteer.Page;
+export interface PhaseBase {
+  page: puppeteer.Page;
+  logger: bunyan;
+
+  /**
+   *  単一処理の一単位 (interface)
+   *  @returns 空のpromiseオブジェクト
+   */
+  proceed(): Promise<void>;
+}
+
+export abstract class StudyPhase implements PhaseBase {
+  public page!: puppeteer.Page;
+  public logger!: bunyan;
+  protected runner: StudyRunner;
 
   /**
    *  コンストラクタ
    */
-  constructor(runner: RunnerBase) {
+  constructor(runner: StudyRunner) {
     this.runner = runner;
     this.page = runner.page;
+    this.logger = runner.logger;
   }
 
   /**

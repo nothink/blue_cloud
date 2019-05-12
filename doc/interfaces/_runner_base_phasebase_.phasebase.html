@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>&quot;main&quot; | blue_cloud</title>
+	<title>PhaseBase | blue_cloud</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -56,47 +56,105 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="_main_.html">&quot;main&quot;</a>
+					<a href="../modules/_runner_base_phasebase_.html">&quot;runner/base/PhaseBase&quot;</a>
+				</li>
+				<li>
+					<a href="_runner_base_phasebase_.phasebase.html">PhaseBase</a>
 				</li>
 			</ul>
-			<h1>External module &quot;main&quot;</h1>
+			<h1>Interface PhaseBase</h1>
 		</div>
 	</div>
 </header>
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p> Puppeteerを用いたランナースクリプトの
+						単一の段階(単一URL遷移)で行う処理単位</p>
+					</div>
+				</div>
+			</section>
+			<section class="tsd-panel tsd-hierarchy">
+				<h3>Hierarchy</h3>
+				<ul class="tsd-hierarchy">
+					<li>
+						<span class="target">PhaseBase</span>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel">
+				<h3>Implemented by</h3>
+				<ul class="tsd-hierarchy">
+					<li><a href="../classes/_runner_study_questphase_.questphase.html" class="tsd-signature-type">QuestPhase</a></li>
+					<li><a href="../classes/_runner_base_phasebase_.studyphase.html" class="tsd-signature-type">StudyPhase</a></li>
+					<li><a href="../classes/_runner_study_topphase_.topphase.html" class="tsd-signature-type">TopPhase</a></li>
+				</ul>
+			</section>
 			<section class="tsd-panel-group tsd-index-group">
 				<h2>Index</h2>
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
-						<section class="tsd-index-section tsd-is-not-exported">
-							<h3>Functions</h3>
+						<section class="tsd-index-section ">
+							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-function tsd-parent-kind-external-module tsd-is-not-exported"><a href="_main_.html#main" class="tsd-kind-icon">main</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_runner_base_phasebase_.phasebase.html#logger" class="tsd-kind-icon">logger</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_runner_base_phasebase_.phasebase.html#page" class="tsd-kind-icon">page</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Methods</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_runner_base_phasebase_.phasebase.html#proceed" class="tsd-kind-icon">proceed</a></li>
 							</ul>
 						</section>
 					</div>
 				</section>
 			</section>
-			<section class="tsd-panel-group tsd-member-group tsd-is-not-exported">
-				<h2>Functions</h2>
-				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-external-module tsd-is-not-exported">
-					<a name="main" class="tsd-anchor"></a>
-					<h3>main</h3>
-					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-external-module tsd-is-not-exported">
-						<li class="tsd-signature tsd-kind-icon">main<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="logger" class="tsd-anchor"></a>
+					<h3>logger</h3>
+					<div class="tsd-signature tsd-kind-icon">logger<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">bunyan</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/nothink/blue_cloud/blob/b387357/src/runner/base/PhaseBase.ts#L22">runner/base/PhaseBase.ts:22</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="page" class="tsd-anchor"></a>
+					<h3>page</h3>
+					<div class="tsd-signature tsd-kind-icon">page<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Page</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/nothink/blue_cloud/blob/b387357/src/runner/base/PhaseBase.ts#L21">runner/base/PhaseBase.ts:21</a></li>
+						</ul>
+					</aside>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Methods</h2>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+					<a name="proceed" class="tsd-anchor"></a>
+					<h3>proceed</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+						<li class="tsd-signature tsd-kind-icon">proceed<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/nothink/blue_cloud/blob/b387357/src/main.ts#L25">main.ts:25</a></li>
+									<li>Defined in <a href="https://github.com/nothink/blue_cloud/blob/b387357/src/runner/base/PhaseBase.ts#L28">runner/base/PhaseBase.ts:28</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>エントリーポイント</p>
+									<p> 単一処理の一単位 (interface)
+									@returns 空のpromiseオブジェクト</p>
 								</div>
 							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -111,37 +169,55 @@
 					<li class="globals  ">
 						<a href="../globals.html"><em>Globals</em></a>
 					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="../modules/_main_.html">"main"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="../modules/_runner_championshiprunner_.html">"runner/<wbr>Championship<wbr>Runner"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="../modules/_runner_storyrunner_.html">"runner/<wbr>Story<wbr>Runner"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="../modules/_runner_studyrunner_.html">"runner/<wbr>Study<wbr>Runner"</a>
+					</li>
 					<li class="current tsd-kind-external-module">
-						<a href="_main_.html">"main"</a>
+						<a href="../modules/_runner_base_phasebase_.html">"runner/base/<wbr>Phase<wbr>Base"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_runner_championshiprunner_.html">"runner/<wbr>Championship<wbr>Runner"</a>
+						<a href="../modules/_runner_base_runnerbase_.html">"runner/base/<wbr>Runner<wbr>Base"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_runner_storyrunner_.html">"runner/<wbr>Story<wbr>Runner"</a>
+						<a href="../modules/_runner_study_questphase_.html">"runner/study/<wbr>Quest<wbr>Phase"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_runner_studyrunner_.html">"runner/<wbr>Study<wbr>Runner"</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="_runner_base_phasebase_.html">"runner/base/<wbr>Phase<wbr>Base"</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="_runner_base_runnerbase_.html">"runner/base/<wbr>Runner<wbr>Base"</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="_runner_study_questphase_.html">"runner/study/<wbr>Quest<wbr>Phase"</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="_runner_study_topphase_.html">"runner/study/<wbr>Top<wbr>Phase"</a>
+						<a href="../modules/_runner_study_topphase_.html">"runner/study/<wbr>Top<wbr>Phase"</a>
 					</li>
 				</ul>
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
-					<li class=" tsd-kind-function tsd-parent-kind-external-module tsd-is-not-exported">
-						<a href="_main_.html#main" class="tsd-kind-icon">main</a>
+					<li class=" tsd-kind-class tsd-parent-kind-external-module">
+						<a href="../classes/_runner_base_phasebase_.studyphase.html" class="tsd-kind-icon">Study<wbr>Phase</a>
 					</li>
+				</ul>
+				<ul class="current">
+					<li class="current tsd-kind-interface tsd-parent-kind-external-module">
+						<a href="_runner_base_phasebase_.phasebase.html" class="tsd-kind-icon">Phase<wbr>Base</a>
+						<ul>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="_runner_base_phasebase_.phasebase.html#logger" class="tsd-kind-icon">logger</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="_runner_base_phasebase_.phasebase.html#page" class="tsd-kind-icon">page</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface">
+								<a href="_runner_base_phasebase_.phasebase.html#proceed" class="tsd-kind-icon">proceed</a>
+							</li>
+						</ul>
+					</li>
+				</ul>
+				<ul class="after-current">
 				</ul>
 			</nav>
 		</div>

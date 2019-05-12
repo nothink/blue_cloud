@@ -1,4 +1,4 @@
-import PhaseBase from '../base/PhaseBase';
+import { StudyPhase } from '../base/PhaseBase';
 
 import StudyRunner from '../StudyRunner';
 
@@ -9,7 +9,7 @@ import * as Studies from '../../../json/studies.json';
 /**
  * テスト勉強用のランナースクリプト
  */
-export default class QuestPhase extends PhaseBase {
+export default class QuestPhase extends StudyPhase {
   public dailySphere: 'SWEET' | 'COOL' | 'POP' | '' = '';
 
   public studyInfo!: any; // StudyInfo型
@@ -26,43 +26,22 @@ export default class QuestPhase extends PhaseBase {
       return;
     }
 
+    // 現在の集中ptを取得
     const conc = await this.getCurrentConcentration();
 
+    // シナリオタブを選択
     await this.clickScenarioTab();
 
-    // 残りポイント不足の時は待機してトップに戻る
-    if (
-      !(this.runner as StudyRunner).usingSpark &&
-      conc < this.studyInfo.cost
-    ) {
+    // 炭酸不許可で集中pt不足の時は待機してトップに戻る
+    if (!this.runner.usingSpark && conc < this.studyInfo.cost) {
       await this.runner.goBaseHome();
       await this.page.waitFor(1000);
       await this.takeBreak(conc);
       return;
     }
 
-    // 残りポイントをSTDOUTに出す
-
     // トグルが開いていない場合は開く
-    const idx = `list${this.studyInfo.type}${this.studyInfo.index}`;
-    const groupStr = `[data-group="${idx}"]`;
-    const closedSel = `div.floatRight.sprite1_triangle${groupStr}`;
-    const openSel = `div.floatRight.sprite1_triangle.rotate180${groupStr}`;
-    try {
-      if (await this.page.$(openSel)) {
-        // 対象セレクタは開いている
-      } else {
-        throw new EvalError('closed.');
-      }
-    } catch (e) {
-      // 対象セレクタは閉じているので開く
-      // this.page.click(closedSel);
-      this.page.$eval(closedSel, (item: Element) => {
-        const button = item as HTMLElement;
-        button.click();
-      });
-      await this.page.waitFor(1000);
-    }
+    await this.openToggle();
 
     // クエストを選択（およびクリック）
     const buttonSel = `[data-state*="${this.studyInfo.id}"]`;
@@ -72,8 +51,9 @@ export default class QuestPhase extends PhaseBase {
       button.click();
     });
 
-    if ((this.runner as StudyRunner).usingSpark) {
-      // this.logger.debug('using spark.');
+    // 集中pt不足の時は集中炭酸を使う
+    if (this.runner.usingSpark) {
+      this.runner.logger.debug('using spark.');
       await this.useSpark();
     }
   }
@@ -125,7 +105,7 @@ export default class QuestPhase extends PhaseBase {
 
   /**
    *  現在の集中ptを取得する
-   *  @returns 集中pt(0-100) / NaN: 取得失敗
+   *  @returns 集中pt(0-100)のPromise / NaN: 取得失敗
    */
   private async getCurrentConcentration(): Promise<number> {
     const pointSel = 'div.cell.vTop.textRight > div > span:nth-child(1)';
@@ -136,6 +116,7 @@ export default class QuestPhase extends PhaseBase {
     }
     return Promise.resolve(NaN);
   }
+
   /**
    *  シナリオタブを選択する
    *  @returns 空のpromiseオブジェクト
@@ -201,7 +182,7 @@ export default class QuestPhase extends PhaseBase {
       await this.page.waitFor(200);
       left = next.diff(moment());
     }
-    process.stdout.write('Reboot...');
+    this.logger.info('Reboot...');
 
     while (true) {
       try {
@@ -224,18 +205,22 @@ export default class QuestPhase extends PhaseBase {
       const popupSel = '.js_output.absolute.block';
       const popup = await this.page.$(popupSel);
       if (!popup) {
+        // ダイアログが存在しない時は通常時
         return;
       }
     } catch (e) {
-      // セレクタが存在しない時は正常
+      // セレクタが存在しない時は通常時
       return;
     }
 
+    // 補充ボタンではなく再開ボタンが有る場合は戻る
     const button = await this.page.$('.js_restart.btn');
     if (button) {
       await button.click();
       return;
     }
+
+    // 補充ボタン押下
     const healSel = '.btn.btnPrimary.js_updateAp';
     const healButton = await this.page.$(healSel);
     if (healButton) {
@@ -244,8 +229,32 @@ export default class QuestPhase extends PhaseBase {
       } catch (e) {
         return;
       }
-      return;
     }
-    return;
+  }
+
+  /**
+   *  勉強選択前のトグルをチェックして、閉じていたら開く
+   * @returns 空のpromiseオブジェクト
+   */
+  private async openToggle(): Promise<void> {
+    const idx = `list${this.studyInfo.type}${this.studyInfo.index}`;
+    const groupStr = `[data-group="${idx}"]`;
+    const closedSel = `div.floatRight.sprite1_triangle${groupStr}`;
+    const openSel = `div.floatRight.sprite1_triangle.rotate180${groupStr}`;
+    try {
+      if (await this.page.$(openSel)) {
+        // 対象セレクタは開いている
+      } else {
+        throw new EvalError('closed.');
+      }
+    } catch (e) {
+      // 対象セレクタは閉じているので開く
+      // this.page.click(closedSel);
+      this.page.$eval(closedSel, (item: Element) => {
+        const button = item as HTMLElement;
+        button.click();
+      });
+      await this.page.waitFor(1000);
+    }
   }
 }
