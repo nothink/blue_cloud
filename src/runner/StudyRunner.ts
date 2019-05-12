@@ -3,6 +3,8 @@ import RunnerBase from './base/RunnerBase';
 import QuestPhase from './study/QuestPhase';
 import TopPhase from './study/TopPhase';
 
+import StudyInfo from '../units/StudyInfo';
+
 import { ElementHandle } from 'puppeteer';
 import * as url from 'url';
 
@@ -13,7 +15,7 @@ export default class StudyRunner extends RunnerBase {
   public usingSpark: boolean; // Phase行き
   public studyTarget!: string; // Phase行き
   public rank!: number; // Phase行き
-  public studyInfo!: any; // StudyInfo型
+  public studyInfo!: StudyInfo;
   public deckNum: number = NaN;
 
   protected homeUrl: string;

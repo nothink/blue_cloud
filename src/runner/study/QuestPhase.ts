@@ -4,7 +4,8 @@ import StudyRunner from '../StudyRunner';
 
 import * as moment from 'moment';
 
-import * as Studies from '../../../json/studies.json';
+import * as StudyList from '../../json/studies.json';
+import StudyInfo from '../../units/StudyInfo';
 
 /**
  * テスト勉強用のランナースクリプト
@@ -12,7 +13,7 @@ import * as Studies from '../../../json/studies.json';
 export default class QuestPhase extends StudyPhase {
   public dailySphere: 'SWEET' | 'COOL' | 'POP' | '' = '';
 
-  public studyInfo!: any; // StudyInfo型
+  public studyInfo!: StudyInfo;
 
   /**
    *  単一処理の一単位
@@ -157,8 +158,8 @@ export default class QuestPhase extends StudyPhase {
       this.dailySphere = '';
       infoKey = '';
     }
-    this.studyInfo = Studies[infoKey];
-    (this.runner as StudyRunner).studyInfo = Studies[infoKey];
+    this.studyInfo = StudyList[infoKey];
+    (this.runner as StudyRunner).studyInfo = StudyList[infoKey];
   }
 
   /**

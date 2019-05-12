@@ -12,7 +12,8 @@
             "dom"
         ],
         "strictNullChecks": true,
-        "noUnusedLocals": true
+        "noUnusedLocals": true,
+        "resolveJsonModule": true
     },
     "formatCodeOptions": {
         "indentSize": 2
