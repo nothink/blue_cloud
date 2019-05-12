@@ -6,8 +6,9 @@ import * as puppeteer from 'puppeteer';
  *  Puppeteerを用いたランナースクリプトのベースクラス
  */
 export default abstract class RunnerBase {
+  public page!: puppeteer.Page;
+
   protected browser!: puppeteer.Browser;
-  protected page!: puppeteer.Page;
   protected mouse!: puppeteer.Mouse;
   protected logger: bunyan;
   protected isTerminated!: boolean;
@@ -28,6 +29,12 @@ export default abstract class RunnerBase {
     this.config = config;
     this.baseUrl = this.config.get('baseUrl');
   }
+
+  /**
+   *  現在の状態 (abstract)
+   *  @returns    状態を表す文字列
+   */
+  abstract get phase(): string;
 
   /**
    *  環境の初期化を行う
@@ -115,7 +122,7 @@ export default abstract class RunnerBase {
    *  ページリロードする
    *  @returns 空のpromiseオブジェクト
    */
-  protected async redo(): Promise<void> {
+  public async redo(): Promise<void> {
     let isOk: boolean = false;
     while (!isOk) {
       try {
@@ -136,7 +143,7 @@ export default abstract class RunnerBase {
    *  ベースとなるURL(トップページ)に戻る
    *  @returns 空のpromiseオブジェクト
    */
-  protected async goBaseHome(): Promise<void> {
+  public async goBaseHome(): Promise<void> {
     await this.page.goto(this.baseUrl, { waitUntil: 'networkidle2' });
   }
 
