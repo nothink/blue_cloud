@@ -168,7 +168,7 @@ export default class ChampionshipRunner extends RunnerBase {
         }
       } else {
         // 0.01秒待機
-        await this.page.waitFor(10);
+        // await this.page.waitFor(10);
       }
     }
   }
@@ -268,9 +268,9 @@ export default class ChampionshipRunner extends RunnerBase {
       // バフ発動中は2倍計算
       const exp = hasBuff ? this.expected * 2 : this.expected;
       // レベル6以上のレアは必ず3以上、それ以外は倍数で指定
-      if (remain < exp * 0.9 && (isRare && level > 6)) {
+      if (remain < exp * 0.9 && (isRare && level < 7)) {
         needLife = 1;
-      } else if (remain < exp * 1.8 && (isRare && level > 6)) {
+      } else if (remain < exp * 1.8 && (isRare && level < 7)) {
         needLife = 2;
       } else if (remain < exp * 2.9) {
         needLife = 3;
@@ -284,7 +284,6 @@ export default class ChampionshipRunner extends RunnerBase {
       this.goHome();
       return;
     }
-
     if (isFullGauge && !hasBuff && isRare && hearts === 5) {
       // ゲージ満タン, バフ未発動, レア敵、ハート満タンの時はバフ着火ボタンを押す
       const fire = await this.page.$('.js_fireStealth');
@@ -292,7 +291,7 @@ export default class ChampionshipRunner extends RunnerBase {
         const fireBox = await fire.boundingBox();
         if (fireBox) {
           await this.page.mouse.click(fireBox.x + 1, fireBox.y + 1);
-          await this.page.waitFor(900);
+          await this.page.waitFor(400);
         }
       }
     }
