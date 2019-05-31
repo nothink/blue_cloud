@@ -89,6 +89,8 @@ export default class ChampionshipRunner extends RunnerBase {
    */
   protected async runOnce(): Promise<void> {
     switch (this.phase) {
+      case '':
+        return this.goHome();
       case 'quest':
         return this.walk();
       case 'encount-animation':
@@ -119,7 +121,7 @@ export default class ChampionshipRunner extends RunnerBase {
       // ダイアログが表示されている場合飛ばす
       await this.passDialog();
 
-      // クリック可否性チェック
+      // 「さがす」ボタンのクリック可否性チェック
       let clickable: boolean;
       try {
         clickable = await this.page.$eval('#js_btnFight', (item: Element) => {
@@ -130,6 +132,7 @@ export default class ChampionshipRunner extends RunnerBase {
           return false;
         });
       } catch (e) {
+        // コンテキスト不在になった時は突然の画面遷移なので次に進む
         return;
       }
       if (clickable) {
@@ -164,8 +167,8 @@ export default class ChampionshipRunner extends RunnerBase {
           }
         }
       } else {
-        // 0.1秒待機
-        await this.page.waitFor(100);
+        // 0.01秒待機
+        await this.page.waitFor(10);
       }
     }
   }
@@ -241,6 +244,7 @@ export default class ChampionshipRunner extends RunnerBase {
       this.isFullGauge(),
       this.hasBuff(),
       this.isRare(),
+      this.getLevel(),
     ]);
 
     const current = status[0];
@@ -249,6 +253,7 @@ export default class ChampionshipRunner extends RunnerBase {
     const isFullGauge = status[3];
     const hasBuff = status[4];
     const isRare = status[5];
+    const level = status[6];
 
     let needLife = 0;
     if (!this.expected && current === 0) {
@@ -261,14 +266,15 @@ export default class ChampionshipRunner extends RunnerBase {
       }
       const remain = max - current;
       // バフ発動中は2倍計算
-      const exp = this.hasBuff() ? this.expected * 2 : this.expected;
-      if (remain < exp * 0.9) {
+      const exp = hasBuff ? this.expected * 2 : this.expected;
+      // レベル6以上のレアは必ず3以上、それ以外は倍数で指定
+      if (remain < exp * 0.9 && (isRare && level > 6)) {
         needLife = 1;
-      } else if (remain < exp * 2.0) {
+      } else if (remain < exp * 1.8 && (isRare && level > 6)) {
         needLife = 2;
-      } else if (remain < exp * 3.1) {
+      } else if (remain < exp * 2.9) {
         needLife = 3;
-      } else if (remain < exp * 4.3) {
+      } else if (remain < exp * 4.0) {
         needLife = 4;
       } else {
         needLife = 5;
@@ -279,8 +285,8 @@ export default class ChampionshipRunner extends RunnerBase {
       return;
     }
 
-    if (isFullGauge && !hasBuff && isRare) {
-      // ゲージ満タン, バフ未発動, レア敵の時はバフ着火ボタンを押す
+    if (isFullGauge && !hasBuff && isRare && hearts === 5) {
+      // ゲージ満タン, バフ未発動, レア敵、ハート満タンの時はバフ着火ボタンを押す
       const fire = await this.page.$('.js_fireStealth');
       if (fire) {
         const fireBox = await fire.boundingBox();
@@ -334,10 +340,10 @@ export default class ChampionshipRunner extends RunnerBase {
       while (canvas) {
         // canvasが無くなるまでクリック
         await canvas.click();
-        await this.page.waitFor(100);
+        await this.page.waitFor(50);
       }
     } catch (e) {
-      // canvas不在でここにくるはず
+      // canvas不在でここにくる
       return;
     }
   }
@@ -399,6 +405,35 @@ export default class ChampionshipRunner extends RunnerBase {
   private async getHearts(): Promise<number> {
     const hearts = await this.page.$$('.inlineBlock.heartOn.js_heartOn');
     return Promise.resolve(hearts.length);
+  }
+
+  /**
+   *  アピール相手がレアかどうか
+   *  @returns booleanのPromise
+   */
+  private async getLevel(): Promise<number> {
+    const levelSel =
+      'body > div.gfContentBgFlower > div > div > div > \
+        div.gfOutlineFrame > div > section.ofHidden > div > \
+        div.dropShadow.relative.z1 > div.table.fill.pt3.pb1 > \
+        div.cell.vMiddle.fs12.fcWhite.pl10.textCenter.outlineGreen > \
+        p:nth-child(2)';
+    try {
+      await this.page.waitForSelector(levelSel, { timeout: 300 });
+      return Promise.resolve(
+        await this.page.$eval(levelSel, (item: Element) => {
+          const text = (item as HTMLParagraphElement).textContent || '';
+          const m = text.match(/[0-9]*/);
+          if (m) {
+            return Promise.resolve(Number(m[0]));
+          }
+          return Promise.resolve(10);
+        }),
+      );
+    } catch (e) {
+      // セレクタが存在しない時はとりあえず倒しづらくなる10を返す
+      return Promise.resolve(10);
+    }
   }
 
   /**
