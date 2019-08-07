@@ -178,7 +178,7 @@ export default class StudyRunner extends RunnerBase {
             return JSON.parse(attr);
           },
         );
-        const infoPartner = info.parent;
+        const infoPartner = info.partner;
         if (topAtk < infoPartner.attack) {
           // 一番攻援が高いパートナーを保持
           top = p;
