@@ -41,32 +41,26 @@ export default abstract class RunnerBase {
    *  @returns 空のpromiseオブジェクト
    */
   public async init(): Promise<void> {
-    this.logger.info('launching browser...');
+    this.logger.debug('launching browser...');
+    const myArgs = this.config.get('chrome.args') as string[];
     this.browser = await puppeteer.launch({
-      args: this.config.get('chrome.args'),
+      args: myArgs.concat(this.config.get('chrome.profilePath')),
+      defaultViewport: this.config.get('chrome.defaultViewport'),
       devtools: this.config.get('chrome.devtools'),
       executablePath: this.config.get('chrome.executablePath'),
       headless: this.config.get('chrome.headless'),
       slowMo: this.config.get('chrome.slowMo'),
-      userDataDir: this.config.get('chrome.profilePath'),
     });
     // 終了時にterminateを呼ぶ
     this.browser.on('disconnected', this.terminate);
 
-    // クラッシュ等の対策で既存ページすべて閉じる
-    (await this.browser.pages()).forEach(p => {
-      p.close();
-    });
-
-    this.page = await this.browser.newPage();
-    await this.page.setViewport(this.config.get('viewport'));
+    this.page = (await this.browser.pages())[0];
     // ベースURL(ameba先頭)へ
     await this.page.goto(this.baseUrl, { waitUntil: 'networkidle2' });
 
-    if (this.page.url().includes('dauth.user.ameba.jp')) {
+    if (this.page.url().includes('user.ameba.jp')) {
       // dauth.user.ameba.jpへとURL遷移したらログインページと認識
-      await this.page.waitFor("input[class='btn btn_primary large']");
-      this.page.click("input[class='btn btn_primary large']");
+      this.page.goto('https://dauth.user.ameba.jp/login/ameba');
       await this.page.waitForNavigation();
 
       await this.page.type(
@@ -78,7 +72,7 @@ export default abstract class RunnerBase {
         this.config.get('account.password'),
       );
 
-      this.page.click("input[class='c-btn c-btn--large c-btn--primary']");
+      this.page.click("input[type='submit']");
       await this.page.waitForNavigation();
       return;
     }

@@ -330,7 +330,7 @@ export default class StudyRunner extends RunnerBase {
 
     let count: number = 0;
 
-    while (count !== undefined) {
+    while (isNaN(count)) {
       try {
         await this.page.waitFor(1900);
         count = await this.useSkillSomeone();
@@ -341,9 +341,9 @@ export default class StudyRunner extends RunnerBase {
       await this.redo();
       const canvas = await this.page.$('#canvas');
       if (canvas) {
-        await this.page.waitFor(1600); // 初期アニメーション
+        await this.page.waitFor(3100); // 初期アニメーション
         await canvas.click();
-        await this.page.waitFor(4300); // ローディングアニメーション
+        await this.page.waitFor(5300); // ローディングアニメーション
       }
     }
   }

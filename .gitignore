@@ -62,9 +62,9 @@ typings/
 
 .DS_Store
 
-dst/
-log/
-profs/
+dst
+log
+profs
 
 config/*
 !config/default.json
