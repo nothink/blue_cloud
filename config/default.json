@@ -9,7 +9,6 @@
             "--window-size=360,520",
             "--load-extension=/Users/nothink/Projects/humi_bookmark/humi_bookmark/",
             "--disable-extensions-except=/Users/nothink/Projects/humi_bookmark/humi_bookmark/",
-            "--user-data-dir=./profs/gf",
             "--mute-audio",
             "--disk-cache-size=33554432"
         ],
