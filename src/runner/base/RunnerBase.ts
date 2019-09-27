@@ -42,14 +42,14 @@ export default abstract class RunnerBase {
    */
   public async init(): Promise<void> {
     this.logger.debug('launching browser...');
-    const myArgs = this.config.get('chrome.args') as string[];
     this.browser = await puppeteer.launch({
-      args: myArgs.concat(this.config.get('chrome.profilePath')),
+      args: this.config.get('chrome.args') as string[],
       defaultViewport: this.config.get('chrome.defaultViewport'),
       devtools: this.config.get('chrome.devtools'),
       executablePath: this.config.get('chrome.executablePath'),
       headless: this.config.get('chrome.headless'),
       slowMo: this.config.get('chrome.slowMo'),
+      userDataDir: this.config.get('chrome.profilePath'),
     });
     // 終了時にterminateを呼ぶ
     this.browser.on('disconnected', this.terminate);
