@@ -141,7 +141,7 @@ export default class StoryRunner extends RunnerBase {
         { timeout: 5000 },
       );
     } catch (e) {
-      this.logger.warn('unknown path?');
+      this.logger.debug('unknown path?');
     }
   }
 
@@ -172,20 +172,24 @@ export default class StoryRunner extends RunnerBase {
 
     if (isLoveLove && isFever && sec < 15 && this.usingSpecial) {
       await this.page.waitFor((sec + 5) * 1000);
-      const button = await this.page.$('#js_openItemPopup');
-      if (button) {
-        await button.click();
+      const item = await this.page.$('#js_openItemPopup');
+      if (item) {
+        await item.click();
       }
       await this.page.waitFor(200);
-      const confirm = await this.page.$('#js_specialItemButton');
+      const confirm = await this.page.$('#js_specialItemButton.jsTouchActive');
       if (confirm) {
-        confirm.click();
+        return confirm.click();
       }
-    } else {
-      const button = await this.page.$('#js_normalItemButton');
-      if (button) {
-        await button.click();
+      // ボタンがjsTouchActiveでないときは以降続行
+      const close = await this.page.$('.closePopBtn');
+      if (close) {
+        await close.click();
       }
+    }
+    const button = await this.page.$('#js_normalItemButton');
+    if (button) {
+      await button.click();
     }
   }
 
