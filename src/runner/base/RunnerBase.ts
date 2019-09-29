@@ -55,6 +55,11 @@ export default abstract class RunnerBase {
     this.browser.on('disconnected', this.terminate);
 
     this.page = (await this.browser.pages())[0];
+    // ダイアログはすべてOK
+    this.page.on('dialog', async dialog => {
+      await dialog.accept();
+    });
+
     // ベースURL(ameba先頭)へ
     await this.page.goto(this.baseUrl, { waitUntil: 'networkidle2' });
 
