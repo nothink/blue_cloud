@@ -185,11 +185,13 @@ export default class StoryRunner extends RunnerBase {
       const close = await this.page.$('.closePopBtn');
       if (close) {
         await close.click();
+        return this.redo();
       }
-    }
-    const button = await this.page.$('#js_normalItemButton');
-    if (button) {
-      await button.click();
+    } else {
+      const button = await this.page.$('#js_normalItemButton');
+      if (button) {
+        return button.click();
+      }
     }
   }
 
