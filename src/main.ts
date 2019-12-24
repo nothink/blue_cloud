@@ -25,7 +25,7 @@ program
 async function main() {
   let runner: RunnerBase;
   if (process.argv.length < 3) {
-    //    console.log("usage: -r (study, story) [-s (level, ring)]");
+    process.stdout.write('usage: -r (study, story, champ) [-s (level, ring)]');
     return;
   }
 
@@ -40,7 +40,9 @@ async function main() {
       runner = new ChampionshipRunner();
       break;
     default:
-      //    console.log("usage: -r (study, story, champ)");
+      process.stdout.write(
+        'usage: -r (study, story, champ) [-s (level, ring)]',
+      );
       return;
   }
 

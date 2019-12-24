@@ -42,9 +42,12 @@ export default class StoryRunner extends RunnerBase {
    *          (http://vcard.ameba.jp/story/quest/event-animation?
    *              eventId=37&questId=3&token=n2YDGc)
    *      levelup-animation (確認中) : レベルアップアニメーション
+   *      point-animation (確認中) : ポイント取得アニメーション
    *      event-result: リザルト画面
    *          (http://vcard.ameba.jp/story/quest/event-result?
    *              eventId=37&questId=3)
+   *      timeout: 差し入れタイム終了状態画面
+   *      animation: ふむふむ本シナリオ
    */
   get phase(): string {
     const current = url.parse(this.page.url());
@@ -77,8 +80,15 @@ export default class StoryRunner extends RunnerBase {
         return this.passEventAnimation();
       case 'levelup-animation':
         return this.passLevelupAnimation();
+      case 'point-animation':
+        return this.passPointAnimation();
       case 'event-result':
         return this.checkEventResult();
+      case 'timeout':
+        // reloadだと同じページに行ってしまうらしい
+        return this.passTimeout();
+      case 'animation':
+        return this.goHome();
 
       default:
         await this.page.waitFor(300);
@@ -100,17 +110,22 @@ export default class StoryRunner extends RunnerBase {
     }
     await this.page.waitFor(500);
 
-    const button = await this.page.$('.questTouchArea');
-    if (button) {
-      const buttonBox = await button.boundingBox();
-      if (buttonBox) {
-        // 座標をクリック
-        const mouse = await this.page.mouse;
-        await mouse.click(buttonBox.x + 280, buttonBox.y + 280);
-      } else {
-        // エリア取得失敗時はリロード
-        this.redo();
+    try {
+      const button = await this.page.$('.questTouchArea');
+      if (button) {
+        const buttonBox = await button.boundingBox();
+        if (buttonBox) {
+          // 座標をクリック
+          const mouse = await this.page.mouse;
+          await mouse.click(buttonBox.x + 280, buttonBox.y + 280);
+        } else {
+          // エリア取得失敗時はリロード
+          this.redo();
+        }
       }
+    } catch (e) {
+      this.logger.debug('going discovery animation...');
+      await this.page.waitFor(1000);
     }
   }
 
@@ -119,7 +134,15 @@ export default class StoryRunner extends RunnerBase {
    *  @returns 空のpromiseオブジェクト
    */
   private async passDiscoveryAnimation(): Promise<void> {
-    await this.page.waitFor(2100);
+    // このアニメーションは遷移終了まで待たないとエラーに飛ぶ
+    try {
+      await this.browser.waitForTarget(
+        target => url.parse(target.url()).pathname === '/story/quest/event',
+        { timeout: 5000 },
+      );
+    } catch (e) {
+      this.logger.debug('unknown path?');
+    }
   }
 
   /**
@@ -147,21 +170,27 @@ export default class StoryRunner extends RunnerBase {
       return elem.getAttribute('class') === 'eventFeverTitle';
     });
 
-    if (isLoveLove && isFever && sec < 50 && this.usingSpecial) {
+    if (isLoveLove && isFever && sec < 15 && this.usingSpecial) {
       await this.page.waitFor((sec + 5) * 1000);
-      const button = await this.page.$('#js_openItemPopup');
-      if (button) {
-        await button.click();
+      const item = await this.page.$('#js_openItemPopup');
+      if (item) {
+        await item.click();
       }
       await this.page.waitFor(200);
-      const confirm = await this.page.$('#js_specialItemButton');
+      const confirm = await this.page.$('#js_specialItemButton.jsTouchActive');
       if (confirm) {
-        confirm.click();
+        return confirm.click();
+      }
+      // ボタンがjsTouchActiveでないときは以降続行
+      const close = await this.page.$('.closePopBtn');
+      if (close) {
+        await close.click();
+        return this.redo();
       }
     } else {
       const button = await this.page.$('#js_normalItemButton');
       if (button) {
-        await button.click();
+        return button.click();
       }
     }
   }
@@ -188,10 +217,36 @@ export default class StoryRunner extends RunnerBase {
    */
   private async passLevelupAnimation(): Promise<void> {
     await this.page.waitFor(300);
+    try {
+      const canvas = await this.page.$('#canvas');
+      // TODO: ボタン飛ばし入れる？
+      if (canvas) {
+        const canvasBox = await canvas.boundingBox();
+        const mouse = await this.page.mouse;
+        if (canvasBox && mouse) {
+          // 座標をクリック
+          await mouse.click(canvasBox.x + 210, canvasBox.y + 265);
+        }
+      }
+    } catch (e) {
+      this.logger.debug('unclickable canvas?');
+      await this.page.waitFor(300);
+    }
+  }
+
+  /**
+   *  ポイント取得アニメーションを飛ばす
+   *  @returns 空のpromiseオブジェクト
+   */
+  private async passPointAnimation(): Promise<void> {
     const canvas = await this.page.$('#canvas');
-    // TODO: ボタン飛ばし入れる？
     if (canvas) {
-      await canvas.click();
+      const canvasBox = await canvas.boundingBox();
+      const mouse = await this.page.mouse;
+      if (canvasBox && mouse) {
+        // 座標をクリック
+        await mouse.click(canvasBox.x + 160, canvasBox.y + 250);
+      }
     }
   }
 
@@ -200,6 +255,17 @@ export default class StoryRunner extends RunnerBase {
    *  @returns 空のpromiseオブジェクト
    */
   private async checkEventResult(): Promise<void> {
+    const button = await this.page.$('.btnPrimary');
+    if (button) {
+      await button.click();
+    }
+  }
+
+  /**
+   * タイムアウト画面をスキップする
+   *  @returns 空のpromiseオブジェクト
+   */
+  private async passTimeout(): Promise<void> {
     const button = await this.page.$('.btnPrimary');
     if (button) {
       await button.click();

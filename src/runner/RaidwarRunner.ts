@@ -6,7 +6,7 @@ import * as url from 'url';
 /**
  *  カリスマ決定戦用のランナースクリプト
  */
-export default class ChampionshipRunner extends RunnerBase {
+export default class RaidwarRunner extends RunnerBase {
   protected homeUrl!: string;
 
   // private usingCandy!: boolean;
@@ -18,19 +18,8 @@ export default class ChampionshipRunner extends RunnerBase {
   constructor() {
     super();
 
-    // this.usingCandy = this.config.get("championship.usingCandy");
-
-    // カリスマホーム
-    this.homeUrl = this.config.get('championshipHomeUrl');
-
-    // 一時保存した発揮値をリストア
-    const tmpPath = `config/${process.env.NODE_ENV}.tmp`;
-    try {
-      fs.statSync(tmpPath);
-      this.expected = parseInt(fs.readFileSync(tmpPath, 'utf-8'), 10);
-    } catch (e) {
-      this.expected = NaN;
-    }
+    // ハンターズホーム
+    this.homeUrl = this.config.get('raidwarHomeUrl');
   }
 
   /**
