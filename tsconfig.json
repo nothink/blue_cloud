@@ -12,7 +12,14 @@
             "dom"
         ],
         "strictNullChecks": true,
-        "noUnusedLocals": true
+        "removeComments": true,
+        "strict": true,
+        "noImplicitAny": true,
+        "noUnusedParameters": true,
+        "noFallthroughCasesInSwitch": true,
+        "noUnusedLocals": true,
+        "moduleResolution": "node",
+        "resolveJsonModule": true
     },
     "formatCodeOptions": {
         "indentSize": 2

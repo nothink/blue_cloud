@@ -5,7 +5,7 @@ import { ElementHandle } from 'puppeteer';
 import * as readline from 'readline';
 import * as url from 'url';
 
-import * as studyList from '../../json/studylist.json';
+import * as studyList from '../json/studylist.json';
 
 /**
  * テスト勉強用のランナースクリプト
@@ -361,7 +361,7 @@ export default class StudyRunner extends RunnerBase {
     readline.cursorTo(process.stdout, 0);
     process.stdout.write('Reboot...');
 
-    while (true) {
+    for (;;) {
       try {
         await this.goBaseHome();
         break;
@@ -494,12 +494,12 @@ export default class StudyRunner extends RunnerBase {
    */
   private async useSkills(): Promise<void> {
     const round = await this.page.evaluate('INIT_JSON.enemy.roundNum');
-    if (round < 5) {
+    if ((round as number) < 5) {
       // 5ラウンドミッションの最終ラウンド以外は使う必要はない
       return;
     }
 
-    let count: number = 0;
+    let count = 0;
 
     while (count !== undefined) {
       try {
@@ -538,12 +538,12 @@ export default class StudyRunner extends RunnerBase {
     for (let y = 0; y < 3; y += 1) {
       for (let x = 0; x < 3; x += 1) {
         const count = y * 3 + x;
-        const skill = cards[count].activeSkill;
+        const skill = (cards as Array<any>)[count].activeSkill;
         if (!skill) {
           continue;
         }
-        const remain = cards[count].activeSkill.remainTurn;
-        const target = cards[count].activeSkill.target;
+        const remain = (cards as Array<any>)[count].activeSkill.remainTurn;
+        const target = (cards as Array<any>)[count].activeSkill.target;
         if (remain === 0) {
           // 残り時間なしの場合
           // 座標をクリック

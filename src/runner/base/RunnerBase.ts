@@ -116,7 +116,9 @@ export default abstract class RunnerBase {
    *  @returns 空のpromiseオブジェクト
    */
   protected async redo(): Promise<void> {
-    let isOk: boolean = false;
+    // TODO: isOkの処理がとても怪しい
+    // for (;;;) {} で回して response.ok() === true で抜けたほうがいい？
+    let isOk = false;
     while (!isOk) {
       try {
         const response = await this.page.reload({

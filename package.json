@@ -13,43 +13,47 @@
         "clean": "rm -rf dst",
         "compile": "tsc -p .",
         "doc": "typedoc --out ./doc/ ./src/",
-        "lint": "tslint --format stylish --project ./ 'src/*.ts' 'src/**/*.ts'",
-        "tslint-check": "tslint-config-prettier-check ./tslint.json",
+        "lint": "eslint --format stylish 'src/*.ts' 'src/**/*.ts'",
+        "eslint-check": "eslint --print-config src/main.ts | eslint-config-prettier-check",
         "precommit": "lint-staged"
     },
     "dependencies": {
         "bunyan": "^1.8.12",
-        "commander": "^2.20.0",
-        "config": "^3.1.0",
-        "husky": "^2.2.0",
-        "lint-staged": "^8.1.6",
+        "commander": "^4.0.1",
+        "config": "^3.2.4",
+        "husky": "^3.1.0",
+        "lint-staged": "^9.5.0",
         "moment": "^2.24.0",
-        "puppeteer": "^1.15.0",
+        "puppeteer": "^2.0.0",
         "readline": "^1.3.0"
     },
     "devDependencies": {
         "@types/bunyan": "^1.8.6",
-        "@types/config": "^0.0.34",
-        "@types/puppeteer": "^1.12.4",
-        "postcss": "^7.0.16",
+        "@types/config": "^0.0.36",
+        "@types/jest": "^24.0.24",
+        "@types/puppeteer": "^2.0.0",
+        "@typescript-eslint/eslint-plugin": "^2.13.0",
+        "@typescript-eslint/parser": "^2.13.0",
+        "eslint": "^6.8.0",
+        "eslint-config-prettier": "^6.7.0",
+        "eslint-plugin-prettier": "^3.1.2",
+        "jest": "^24.9.0",
+        "postcss": "^7.0.25",
         "postcss-syntax": "^0.36.2",
-        "prettier": "^1.17.0",
-        "ts-node": "^8.1.0",
-        "tslint": "^5.16.0",
-        "tslint-config-airbnb": "^5.11.1",
-        "tslint-config-prettier": "^1.18.0",
-        "tslint-plugin-prettier": "^2.0.1",
-        "tsutils": "^3.10.0",
-        "typedoc": "^0.14.2",
-        "typescript": "^3.4.5"
+        "prettier": "^1.19.1",
+        "ts-jest": "^24.2.0",
+        "ts-node": "^8.5.4",
+        "tsutils": "^3.17.1",
+        "typedoc": "^0.15.5",
+        "typescript": "^3.7.4"
     },
     "lint-staged": {
         "*.ts": [
-          "prettier --write",
-          "git add"
+            "prettier --write",
+            "git add"
         ]
-      },
-        "prettier": {
+    },
+    "prettier": {
         "bracketSpacing": true,
         "printWidth": 80,
         "semi": true,

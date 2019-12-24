@@ -1,9 +1,9 @@
+import * as program from 'commander';
+
 import RunnerBase from './runner/base/RunnerBase';
 import ChampionshipRunner from './runner/ChampionshipRunner';
 import StoryRunner from './runner/StoryRunner';
 import StudyRunner from './runner/StudyRunner';
-
-import * as program from 'commander';
 
 // commanderをセットアップ
 program
@@ -22,7 +22,7 @@ program
 /**
  * エントリーポイント
  */
-async function main() {
+async function main(): Promise<void> {
   let runner: RunnerBase;
   if (process.argv.length < 3) {
     //    console.log("usage: -r (study, story) [-s (level, ring)]");
@@ -40,15 +40,16 @@ async function main() {
       runner = new ChampionshipRunner();
       break;
     default:
-      //    console.log("usage: -r (study, story, champ)");
+      console.log('usage: -r (study, story, champ');
       return;
   }
 
   if (runner) {
     await runner.init();
     await runner.run();
-    await runner.close();
+    return runner.close();
   }
+  return;
 }
 
 main();
