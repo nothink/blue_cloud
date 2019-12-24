@@ -16,7 +16,7 @@ export default class StudyRunner extends RunnerBase {
   public studyTarget!: string; // Phase行き
   public rank!: number; // Phase行き
   public studyInfo!: StudyInfo;
-  public deckNum: number = NaN;
+  public deckNum!: number;
 
   protected homeUrl: string;
 
@@ -111,14 +111,16 @@ export default class StudyRunner extends RunnerBase {
     // Phaseで切り替える
     switch (this.phase) {
       case '':
-      case 'top':
+      case 'top': {
         const ph = new TopPhase(this);
         return ph.proceed();
-      // return this.startQuest();
-      case 'quest':
+        // return this.startQuest();
+      }
+      case 'quest': {
         const pha = new QuestPhase(this);
         return pha.proceed();
-      // return this.selectQuest();
+        // return this.selectQuest();
+      }
       case 'partner':
         return this.selectPartner();
       case 'deck':
@@ -323,12 +325,12 @@ export default class StudyRunner extends RunnerBase {
    */
   private async useSkills(): Promise<void> {
     const round = await this.page.evaluate('INIT_JSON.enemy.roundNum');
-    if (round < 5) {
+    if ((round as number) < 5) {
       // 5ラウンドミッションの最終ラウンド以外は使う必要はない
       return;
     }
 
-    let count: number = 0;
+    let count = 0;
 
     while (isNaN(count)) {
       try {
@@ -367,12 +369,12 @@ export default class StudyRunner extends RunnerBase {
     for (let y = 0; y < 3; y += 1) {
       for (let x = 0; x < 3; x += 1) {
         const count = y * 3 + x;
-        const skill = cards[count].activeSkill;
+        const skill = (cards as any)[count].activeSkill;
         if (!skill) {
           continue;
         }
-        const remain = cards[count].activeSkill.remainTurn;
-        const target = cards[count].activeSkill.target;
+        const remain = (cards as any)[count].activeSkill.remainTurn;
+        const target = (cards as any)[count].activeSkill.target;
         if (remain === 0) {
           // 残り時間なしの場合
           // 座標をクリック

@@ -122,16 +122,20 @@ export default abstract class RunnerBase {
    *  @returns 空のpromiseオブジェクト
    */
   public async redo(): Promise<void> {
-    let isOk: boolean = false;
-    while (!isOk) {
+    // TODO: isOkを外して、response.ok()で抜けられない？
+    // for (;;) で
+    for (;;) {
       try {
         const response = await this.page.reload({
           timeout: 20000,
           waitUntil: 'networkidle2',
         });
-        isOk = response.ok();
-      } catch {
-        isOk = false;
+        if (response.ok()) {
+          break;
+        }
+      } catch (e) {
+        this.logger.error('exeption:');
+        this.logger.error(e.message);
       } finally {
         await this.page.waitFor(500);
       }

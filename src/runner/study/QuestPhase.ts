@@ -158,8 +158,10 @@ export default class QuestPhase extends StudyPhase {
       this.dailySphere = '';
       infoKey = '';
     }
-    this.studyInfo = StudyList[infoKey];
-    (this.runner as StudyRunner).studyInfo = StudyList[infoKey];
+    this.studyInfo = (StudyList as { [index: string]: StudyInfo })[infoKey];
+    (this.runner as StudyRunner).studyInfo = (StudyList as {
+      [index: string]: StudyInfo;
+    })[infoKey];
   }
 
   /**
@@ -185,7 +187,7 @@ export default class QuestPhase extends StudyPhase {
     }
     this.logger.info('Reboot...');
 
-    while (true) {
+    for (;;) {
       try {
         await this.runner.goBaseHome();
         break;

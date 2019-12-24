@@ -268,9 +268,9 @@ export default class ChampionshipRunner extends RunnerBase {
       // バフ発動中は2倍計算
       const exp = hasBuff ? this.expected * 2 : this.expected;
       // レベル6以上のレアは必ず3以上、それ以外は倍数で指定
-      if (remain < exp * 0.9 && (isRare && level < 7)) {
+      if (remain < exp * 0.9 && isRare && level < 7) {
         needLife = 1;
-      } else if (remain < exp * 1.8 && (isRare && level < 7)) {
+      } else if (remain < exp * 1.8 && isRare && level < 7) {
         needLife = 2;
       } else if (remain < exp * 2.9) {
         needLife = 3;
