@@ -152,7 +152,7 @@ export default class StudyRunner extends RunnerBase {
    */
   private async selectPartner(): Promise<void> {
     this.logger.debug('Select partner.');
-    await this.page.waitFor(1000);
+    await this.page.waitFor(2000);
 
     const partnersSel =
       "section.bgTiffanyBlue > \
