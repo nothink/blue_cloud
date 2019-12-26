@@ -122,8 +122,6 @@ export default abstract class RunnerBase {
    *  @returns 空のpromiseオブジェクト
    */
   public async redo(): Promise<void> {
-    // TODO: isOkを外して、response.ok()で抜けられない？
-    // for (;;) で
     for (;;) {
       try {
         const response = await this.page.reload({

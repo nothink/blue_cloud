@@ -70,3 +70,5 @@ config/*
 !config/default.json
 
 .vscode
+
+yarn.lock
