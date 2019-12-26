@@ -1,7 +1,7 @@
 import StudyRunner from '../StudyRunner';
 
 import * as bunyan from 'bunyan';
-import * as puppeteer from 'puppeteer';
+import * as puppeteer from 'puppeteer-core';
 
 // TODO: Abstract Factory パターンを用いてPhase生成を単純化したい
 // https://refactoring.guru/design-patterns/abstract-factory/typescript/example

@@ -1,6 +1,6 @@
 import * as bunyan from 'bunyan';
 import * as config from 'config';
-import * as puppeteer from 'puppeteer';
+import * as puppeteer from 'puppeteer-core';
 
 /**
  *  Puppeteerを用いたランナースクリプトのベースクラス

@@ -5,7 +5,7 @@ import TopPhase from './study/TopPhase';
 
 import StudyInfo from '../units/StudyInfo';
 
-import { ElementHandle } from 'puppeteer';
+import { ElementHandle } from 'puppeteer-core';
 import * as url from 'url';
 
 /**
