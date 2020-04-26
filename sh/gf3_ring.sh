@@ -1,6 +1,6 @@
 #!/bin/sh
 
-TARGET=nothink
+TARGET=gf3
 RUNNER=study
 STUDY_TARGET=ring
 

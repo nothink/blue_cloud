@@ -1,6 +1,6 @@
 #!/bin/sh
 
-TARGET=nothink
+TARGET=gf2
 RUNNER=story
 
 cd $(dirname $(readlink $0))/..

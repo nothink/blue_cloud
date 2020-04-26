@@ -1,6 +1,6 @@
 #!/bin/sh
 
-TARGET=nothink
+TARGET=gf4
 RUNNER=champ
 
 cd $(dirname $(readlink $0))/..

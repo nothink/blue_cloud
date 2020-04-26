@@ -6,7 +6,7 @@
   "chrome": {
     "args": [
       "--app=https://vcard.ameba.jp",
-      "--window-size=340,520",
+      "--window-size=340,560",
       "--load-extension=/Users/nothink/Projects/humi_bookmark/humi_bookmark/",
       "--disable-extensions-except=/Users/nothink/Projects/humi_bookmark/humi_bookmark/",
       "--mute-audio",

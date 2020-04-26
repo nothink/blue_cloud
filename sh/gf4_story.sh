@@ -1,6 +1,6 @@
 #!/bin/sh
 
-TARGET=ez8
+TARGET=gf4
 RUNNER=story
 
 cd $(dirname $(readlink $0))/..

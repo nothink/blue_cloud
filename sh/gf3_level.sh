@@ -1,6 +1,6 @@
 #!/bin/sh
 
-TARGET=ez8
+TARGET=gf3
 RUNNER=study
 STUDY_TARGET=level
 
