@@ -77,6 +77,9 @@ export default abstract class RunnerBase {
         this.config.get('account.password'),
       );
 
+      // 手で入る
+      await this.page.waitFor(300000);
+
       this.page.click("input[type='submit']");
       await this.page.waitForNavigation();
       return;
