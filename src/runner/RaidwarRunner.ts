@@ -374,7 +374,7 @@ export default class RaidwarRunner extends RunnerBase {
               if (confirmBox) {
                 await this.page.mouse.click(
                   confirmBox.x + 80,
-                  confirmBox.y + 20,
+                  confirmBox.y + 20
                 );
                 return;
               }
@@ -416,7 +416,7 @@ export default class RaidwarRunner extends RunnerBase {
             return Promise.resolve(Number(m[0]));
           }
           return Promise.resolve(10);
-        }),
+        })
       );
     } catch (e) {
       // セレクタが存在しない時はとりあえず倒しづらくなる10を返す
@@ -443,7 +443,7 @@ export default class RaidwarRunner extends RunnerBase {
             return Promise.resolve(true);
           }
           return Promise.resolve(false);
-        }),
+        })
       );
     } catch (e) {
       // セレクタが存在しない時は通常
@@ -468,7 +468,7 @@ export default class RaidwarRunner extends RunnerBase {
    */
   private async hasBuff(): Promise<boolean> {
     if (await this.page.$('.js_attackBuff')) {
-      return this.page.$eval('.js_attackBuff', item => {
+      return this.page.$eval('.js_attackBuff', (item) => {
         const cls = item.getAttribute('class') || '';
         if (cls.includes('none')) {
           return Promise.resolve(false);

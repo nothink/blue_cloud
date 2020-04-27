@@ -178,7 +178,7 @@ export default class StudyRunner extends RunnerBase {
           (detail: Element) => {
             const attr = detail.getAttribute('data-json') || '';
             return JSON.parse(attr);
-          },
+          }
         );
         const infoPartner = info.partner;
         if (topAtk < infoPartner.attack) {
@@ -364,7 +364,7 @@ export default class StudyRunner extends RunnerBase {
       return Promise.resolve(NaN);
     }
     const cards = await this.page.evaluate(
-      'window.MainCtl.module.iconArea.cards',
+      'window.MainCtl.module.iconArea.cards'
     );
     for (let y = 0; y < 3; y += 1) {
       for (let x = 0; x < 3; x += 1) {
@@ -380,7 +380,7 @@ export default class StudyRunner extends RunnerBase {
           // 座標をクリック
           await this.page.mouse.click(
             canvasBox.x + 40 + 65 * x,
-            canvasBox.y + 240 + 65 * y,
+            canvasBox.y + 240 + 65 * y
           );
           await this.page.waitFor(1900);
           // 発動ボタンをクリック

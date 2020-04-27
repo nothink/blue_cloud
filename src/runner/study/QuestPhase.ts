@@ -175,12 +175,10 @@ export default class QuestPhase extends StudyPhase {
     const next = moment().add(delta * 60, 'second');
     let left = next.diff(moment());
     while (left > 0) {
-      const leftStr = moment(left)
-        .utc()
-        .format('H:mm:ss');
+      const leftStr = moment(left).utc().format('H:mm:ss');
       const nextStr = next.format('MM/DD HH:mm:ss');
       process.stdout.write(
-        `\r[next: ${nextStr}]: ` + `${leftStr} remaining...`,
+        `\r[next: ${nextStr}]: ` + `${leftStr} remaining...`
       );
       await this.page.waitFor(200);
       left = next.diff(moment());

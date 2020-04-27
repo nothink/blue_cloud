@@ -10,12 +10,12 @@ program
   .option(
     '-r, --runner <type>',
     'Runner type(study, story, champ)',
-    /^(study|story|champ)$/i,
+    /^(study|story|champ)$/i
   )
   .option(
     '-s, --studytarget <type>',
     'Study target(level, ring)',
-    /^(level|ring)$/i,
+    /^(level|ring)$/i
   )
   .parse(process.argv);
 
@@ -31,17 +31,17 @@ async function main(): Promise<void> {
 
   switch (program.runner) {
     case 'study':
-      runner = new StudyRunner(program.studytarget);
+      runner = new StudyRunner(program.studytarget) as RunnerBase;
       break;
     case 'story':
-      runner = new StoryRunner();
+      runner = new StoryRunner() as RunnerBase;
       break;
     case 'champ':
-      runner = new ChampionshipRunner();
+      runner = new ChampionshipRunner() as RunnerBase;
       break;
     default:
       process.stdout.write(
-        'usage: -r (study, story, champ) [-s (level, ring)]',
+        'usage: -r (study, story, champ) [-s (level, ring)]'
       );
       return;
   }

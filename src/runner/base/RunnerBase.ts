@@ -56,7 +56,7 @@ export default abstract class RunnerBase {
 
     this.page = (await this.browser.pages())[0];
     // ダイアログはすべてOK
-    this.page.on('dialog', async dialog => {
+    this.page.on('dialog', async (dialog) => {
       await dialog.accept();
     });
 
@@ -70,11 +70,11 @@ export default abstract class RunnerBase {
 
       await this.page.type(
         "input[name='accountId']",
-        this.config.get('account.username'),
+        this.config.get('account.username')
       );
       await this.page.type(
         "input[name='password']",
-        this.config.get('account.password'),
+        this.config.get('account.password')
       );
 
       // 手で入る
