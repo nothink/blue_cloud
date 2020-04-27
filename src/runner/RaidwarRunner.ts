@@ -1,7 +1,7 @@
 import RunnerBase from './base/RunnerBase';
 
-import * as fs from 'fs';
-import * as url from 'url';
+import fs from 'fs';
+import url from 'url';
 
 /**
  *  カリスマ決定戦用のランナースクリプト

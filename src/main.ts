@@ -1,12 +1,14 @@
-import * as program from 'commander';
+import { Command } from 'commander';
 
 import RunnerBase from './runner/base/RunnerBase';
 import ChampionshipRunner from './runner/ChampionshipRunner';
 import StoryRunner from './runner/StoryRunner';
 import StudyRunner from './runner/StudyRunner';
 
+const command = new Command();
+
 // commanderをセットアップ
-program
+command
   .option(
     '-r, --runner <type>',
     'Runner type(study, story, champ)',
@@ -29,9 +31,9 @@ async function main(): Promise<void> {
     return;
   }
 
-  switch (program.runner) {
+  switch (command.runner) {
     case 'study':
-      runner = new StudyRunner(program.studytarget) as RunnerBase;
+      runner = new StudyRunner(command.studytarget) as RunnerBase;
       break;
     case 'story':
       runner = new StoryRunner() as RunnerBase;

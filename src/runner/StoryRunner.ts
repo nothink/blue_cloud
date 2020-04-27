@@ -1,6 +1,6 @@
 import RunnerBase from './base/RunnerBase';
 
-import * as url from 'url';
+import url from 'url';
 
 /**
  * ふむふむ（聖櫻学園物語）用のランナースクリプト

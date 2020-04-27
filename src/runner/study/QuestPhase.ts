@@ -2,7 +2,7 @@ import { StudyPhase } from '../base/PhaseBase';
 
 import StudyRunner from '../StudyRunner';
 
-import * as moment from 'moment';
+import moment from 'moment/moment';
 
 import * as StudyList from '../../json/studies.json';
 import StudyInfo from '../../units/StudyInfo';

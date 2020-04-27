@@ -6,7 +6,7 @@ import TopPhase from './study/TopPhase';
 import StudyInfo from '../units/StudyInfo';
 
 import { ElementHandle } from 'puppeteer-core';
-import * as url from 'url';
+import url from 'url';
 
 /**
  * テスト勉強用のランナースクリプト
@@ -157,8 +157,7 @@ export default class StudyRunner extends RunnerBase {
     await this.page.waitFor(2000);
 
     const partnersSel =
-      "section.bgTiffanyBlue > \
-        div.relative.bgPartner.pt5 > div[data-href='#study/deck/select']";
+      'section.bgTiffanyBlue > div.relative.bgPartner.pt5 > div[data-href="#study/deck/select"]';
 
     const partners = await this.page.$$(partnersSel);
     if (this.studyTarget === 'level') {
@@ -174,7 +173,7 @@ export default class StudyRunner extends RunnerBase {
       // 最も攻援が高く、できれば得意属性のパートナーを検索
       for (const p of partners) {
         const info = await p.$eval(
-          "div[data-group='detail']",
+          'div[data-group="detail"]',
           (detail: Element) => {
             const attr = detail.getAttribute('data-json') || '';
             return JSON.parse(attr);
@@ -211,14 +210,14 @@ export default class StudyRunner extends RunnerBase {
 
     // デッキタブの選択
     const deckSel =
-      "section[class='commonTab'] > ul > " + "li[data-group='decks']";
+      'section[class="commonTab"] > ul >' + 'li[data-group="decks"]';
     const decks = await this.page.$$(deckSel);
     const deckCnt = this.studyInfo.deck - 1;
     await decks[deckCnt].click();
     await this.page.waitFor(1000);
 
     // デッキエリアのボタンを探してクリック
-    const areaSel = "div[data-group='decks']";
+    const areaSel = 'div[data-group="decks"]';
     const areas = await this.page.$$(areaSel);
     const button = await areas[deckCnt].$('.btnPrimary');
     if (button) {
@@ -363,18 +362,18 @@ export default class StudyRunner extends RunnerBase {
     if (!canvasBox) {
       return Promise.resolve(NaN);
     }
-    const cards = await this.page.evaluate(
+    const cards = (await this.page.evaluate(
       'window.MainCtl.module.iconArea.cards'
-    );
+    )) as Array<{ activeSkill: { remainTurn: number; target: number } }>;
     for (let y = 0; y < 3; y += 1) {
       for (let x = 0; x < 3; x += 1) {
         const count = y * 3 + x;
-        const skill = (cards as any)[count].activeSkill;
+        const skill = cards[count].activeSkill;
         if (!skill) {
           continue;
         }
-        const remain = (cards as any)[count].activeSkill.remainTurn;
-        const target = (cards as any)[count].activeSkill.target;
+        const remain = cards[count].activeSkill.remainTurn;
+        const target = cards[count].activeSkill.target;
         if (remain === 0) {
           // 残り時間なしの場合
           // 座標をクリック
