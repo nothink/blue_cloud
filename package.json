@@ -8,7 +8,7 @@
   "author": "nothink <nothing@yasagure.jp>",
   "license": "MIT",
   "scripts": {
-    "start": "node dst/main.js",
+    "start": "ts-node src/main.ts",
     "build": "yarn clean && yarn lint && yarn compile",
     "clean": "rm -rf dst",
     "compile": "tsc -p .",
