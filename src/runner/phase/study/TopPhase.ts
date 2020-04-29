@@ -1,4 +1,4 @@
-import { StudyPhase } from '../base/PhaseBase';
+import { StudyPhase } from '../../base/PhaseBase';
 
 /**
  * テスト勉強用のランナースクリプト
@@ -10,6 +10,7 @@ export default class TopPhase extends StudyPhase {
    */
   public async proceed(): Promise<void> {
     // TODO: ここawaitせずにreturnしていい？
+    // Promise<Response|null> なのでそのままでは返せない
     await this.page.goto('https://vcard.ameba.jp/s#study/quest/select', {
       waitUntil: 'networkidle2',
     });

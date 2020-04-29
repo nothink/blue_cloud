@@ -1,7 +1,7 @@
 import RunnerBase from './base/RunnerBase';
 
-import QuestPhase from './study/QuestPhase';
-import TopPhase from './study/TopPhase';
+import QuestPhase from './phase/study/QuestPhase';
+import TopPhase from './phase/study/TopPhase';
 
 import StudyInfo from '../units/StudyInfo';
 
@@ -117,12 +117,13 @@ export default class StudyRunner extends RunnerBase {
         // return this.startQuest();
       }
       case 'quest': {
-        const pha = new QuestPhase(this);
-        return pha.proceed();
+        const ph = new QuestPhase(this);
+        return ph.proceed();
         // return this.selectQuest();
       }
-      case 'partner':
+      case 'partner': {
         return this.selectPartner();
+      }
       case 'deck':
         return this.selectDeck();
       case 'battle':
