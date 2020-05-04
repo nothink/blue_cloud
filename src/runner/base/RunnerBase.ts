@@ -155,7 +155,7 @@ export default abstract class RunnerBase {
    *  各クラスごとのホームページに戻る
    *  @returns 空のpromiseオブジェクト
    */
-  protected async goHome(): Promise<void> {
+  public async goHome(): Promise<void> {
     await this.page.goto(this.homeUrl, { waitUntil: 'networkidle2' });
   }
 

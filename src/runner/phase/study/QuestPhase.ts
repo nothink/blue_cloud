@@ -8,7 +8,7 @@ import * as StudyList from '../../../json/studies.json';
 import StudyInfo from '../../../units/StudyInfo';
 
 /**
- * テスト勉強用のランナースクリプト
+ * テスト勉強用のランナーフェイズ(Quest選択画面)
  */
 export default class QuestPhase extends StudyPhase {
   public dailySphere: 'SWEET' | 'COOL' | 'POP' | '' = '';
