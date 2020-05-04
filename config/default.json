@@ -1,42 +1,43 @@
 {
-    "baseUrl": "https://vcard.ameba.jp/",
-    "studyHomeUrl": "https://vcard.ameba.jp/s#study/top",
-    "storyHomeUrlBase": "https://vcard.ameba.jp/story/quest",
-    "championshipHomeUrl": "https://vcard.ameba.jp/championship/quest/detail",
-    "chrome": {
-        "args": [
-            "--app=https://vcard.ameba.jp",
-            "--window-size=360,520",
-            "--load-extension=/Users/nothink/Projects/humi_bookmark/humi_bookmark/",
-            "--disable-extensions-except=/Users/nothink/Projects/humi_bookmark/humi_bookmark/",
-            "--mute-audio",
-            "--disk-cache-size=33554432"
-        ],
-        "defaultViewport": null,
-        "devtools": false,
-        "executablePath": null,
-        "headless": false,
-        "slowMo": 10
-    },
-    "account": {
-        "username": "",
-        "password": ""
-    },
-    "logger": {
-        "isEnabled": true,
-        "path": "./log"
-    },
-    "study": {
-        "testRank": 1,
-        "usingSpark": false,
-        "usingSkill": false
-    },
-    "story": {
-        "eventId": 52,
-        "questId": 1,
-        "usingSpecial": false
-    },
-    "championship": {
-        "usingCandy": false
-    }
+  "baseUrl": "https://vcard.ameba.jp/",
+  "studyHomeUrl": "https://vcard.ameba.jp/s#study/top",
+  "storyHomeUrlBase": "https://vcard.ameba.jp/story/quest",
+  "championshipHomeUrl": "https://vcard.ameba.jp/championship/quest/detail",
+  "chrome": {
+    "args": [
+      "--app=https://vcard.ameba.jp",
+      "--window-size=340,560",
+      "--load-extension=/Users/nothink/Projects/humi_bookmark/humi_bookmark/",
+      "--disable-extensions-except=/Users/nothink/Projects/humi_bookmark/humi_bookmark/",
+      "--mute-audio",
+      "--disk-cache-size=33554432",
+      "–disable-features=site-per-process"
+    ],
+    "defaultViewport": null,
+    "devtools": false,
+    "executablePath": null,
+    "headless": false,
+    "slowMo": 10
+  },
+  "account": {
+    "username": "",
+    "password": ""
+  },
+  "logger": {
+    "isEnabled": true,
+    "path": "./log"
+  },
+  "study": {
+    "testRank": 1,
+    "usingSpark": false,
+    "usingSkill": false
+  },
+  "story": {
+    "eventId": 55,
+    "questId": 1,
+    "usingSpecial": false
+  },
+  "championship": {
+    "usingCandy": false
+  }
 }

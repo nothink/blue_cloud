@@ -1,6 +1,6 @@
 import RunnerBase from './base/RunnerBase';
 
-import * as url from 'url';
+import url from 'url';
 
 /**
  * ふむふむ（聖櫻学園物語）用のランナースクリプト
@@ -137,8 +137,8 @@ export default class StoryRunner extends RunnerBase {
     // このアニメーションは遷移終了まで待たないとエラーに飛ぶ
     try {
       await this.browser.waitForTarget(
-        target => url.parse(target.url()).pathname === '/story/quest/event',
-        { timeout: 5000 },
+        (target) => url.parse(target.url()).pathname === '/story/quest/event',
+        { timeout: 5000 }
       );
     } catch (e) {
       this.logger.debug('unknown path?');
@@ -156,7 +156,7 @@ export default class StoryRunner extends RunnerBase {
     let isLoveLove: boolean;
     try {
       const area = await this.page.$('.loveloveModeTime');
-      const timestr = await this.page.evaluate(elem => {
+      const timestr = await this.page.evaluate((elem) => {
         return elem.textContent;
       }, area);
       const times = timestr.split(':');
@@ -166,7 +166,7 @@ export default class StoryRunner extends RunnerBase {
       isLoveLove = false;
     }
     // フィーバー（ラブラブ差し入れ）かのチェック
-    const isFever = await this.page.$eval('h1', elem => {
+    const isFever = await this.page.$eval('h1', (elem) => {
       return elem.getAttribute('class') === 'eventFeverTitle';
     });
 

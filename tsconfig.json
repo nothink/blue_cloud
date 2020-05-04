@@ -1,33 +1,29 @@
 {
-    "compilerOptions": {
-        "baseUrl": ".",
-        "target": "es2018",
-        "module": "commonjs",
-        "sourceMap": true,
-        "allowJs": true,
-        "rootDir": "src",
-        "outDir": "dst",
-        "lib": [
-            "es2018",
-            "dom"
-        ],
-        "strictNullChecks": true,
-        "removeComments": true,
-        "strict": true,
-        "noImplicitAny": true,
-        "noUnusedParameters": true,
-        "noFallthroughCasesInSwitch": true,
-        "noUnusedLocals": true,
-        "moduleResolution": "node",
-        "resolveJsonModule": true
-    },
-    "formatCodeOptions": {
-        "indentSize": 2
-    },
-    "include": [
-        "src/*.ts",
-        "src/**/*.ts",
-        "test/*.ts",
-        "test/**/*.ts"
-    ]
+  "compilerOptions": {
+    "target": "es2018",
+    "module": "commonjs",
+    "lib": ["es2018", "dom"],
+    "sourceMap": true,
+    "rootDir": "./src",
+    "outDir": "./dst",
+    "removeComments": false,
+
+    "strict": true,
+
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {},
+    "esModuleInterop": true,
+
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+
+    "resolveJsonModule": true
+  },
+  "include": ["src/*.ts", "src/**/*.ts", "test/*.spec.ts", "test/**/*.spec.ts"],
+  "exclude": ["node_modules", "dist"]
 }

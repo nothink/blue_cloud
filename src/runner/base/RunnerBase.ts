@@ -1,6 +1,6 @@
-import * as bunyan from 'bunyan';
-import * as config from 'config';
-import * as puppeteer from 'puppeteer';
+import bunyan from 'bunyan';
+import config from 'config';
+import puppeteer from 'puppeteer-core';
 
 /**
  *  Puppeteerを用いたランナースクリプトのベースクラス
@@ -56,7 +56,7 @@ export default abstract class RunnerBase {
 
     this.page = (await this.browser.pages())[0];
     // ダイアログはすべてOK
-    this.page.on('dialog', async dialog => {
+    this.page.on('dialog', async (dialog) => {
       await dialog.accept();
     });
 
@@ -70,12 +70,15 @@ export default abstract class RunnerBase {
 
       await this.page.type(
         "input[name='accountId']",
-        this.config.get('account.username'),
+        this.config.get('account.username')
       );
       await this.page.type(
         "input[name='password']",
-        this.config.get('account.password'),
+        this.config.get('account.password')
       );
+
+      // 手で入る
+      await this.page.waitFor(300000);
 
       this.page.click("input[type='submit']");
       await this.page.waitForNavigation();
@@ -122,8 +125,6 @@ export default abstract class RunnerBase {
    *  @returns 空のpromiseオブジェクト
    */
   public async redo(): Promise<void> {
-    // TODO: isOkを外して、response.ok()で抜けられない？
-    // for (;;) で
     for (;;) {
       try {
         const response = await this.page.reload({
@@ -154,7 +155,7 @@ export default abstract class RunnerBase {
    *  各クラスごとのホームページに戻る
    *  @returns 空のpromiseオブジェクト
    */
-  protected async goHome(): Promise<void> {
+  public async goHome(): Promise<void> {
     await this.page.goto(this.homeUrl, { waitUntil: 'networkidle2' });
   }
 
