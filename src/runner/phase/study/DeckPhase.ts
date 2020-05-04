@@ -1,3 +1,5 @@
+import logger from '@/common/logger';
+
 import { StudyPhase } from '../../base/PhaseBase';
 
 /**
@@ -9,7 +11,7 @@ export default class DeckPhase extends StudyPhase {
    *  @returns 空のpromiseオブジェクト
    */
   public async proceed(): Promise<void> {
-    this.logger.debug('Select deck.');
+    logger.debug('Select deck.');
     await this.page.waitFor(1000);
 
     // デッキタブの選択

@@ -1,3 +1,5 @@
+import logger from '@/common/Logger';
+
 import RunnerBase from './base/RunnerBase';
 
 import TopPhase from './phase/study/TopPhase';
@@ -141,7 +143,7 @@ export default class StudyRunner extends RunnerBase {
 
       default:
         await this.page.waitFor(300);
-        this.logger.warn(`unknown phase: "${this.phase}"`);
+        logger.warn(`unknown phase: "${this.phase}"`);
         return this.goHome();
     }
   }

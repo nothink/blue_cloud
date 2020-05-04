@@ -1,3 +1,5 @@
+import logger from '@/common/logger';
+
 import { StudyPhase } from '../../base/PhaseBase';
 import StudyInfo from '../../../units/StudyInfo';
 
@@ -14,7 +16,7 @@ export default class PartnerPhase extends StudyPhase {
    *  @returns 空のpromiseオブジェクト
    */
   public async proceed(): Promise<void> {
-    this.logger.debug('Select partner.');
+    logger.debug('Select partner.');
     await this.page.waitFor(2000);
 
     const partnersSel =

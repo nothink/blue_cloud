@@ -1,3 +1,5 @@
+import logger from '@/common/Logger';
+
 import RunnerBase from './base/RunnerBase';
 
 import fs from 'fs';
@@ -94,7 +96,7 @@ export default class RaidwarRunner extends RunnerBase {
         return this.skipResult();
       default:
         await this.page.waitFor(300);
-        this.logger.warn(`unknown phase: "${this.phase}"`);
+        logger.warn(`unknown phase: "${this.phase}"`);
         return this.goHome();
     }
   }
@@ -127,7 +129,7 @@ export default class RaidwarRunner extends RunnerBase {
       if (clickable) {
         const buttonBox = await button.boundingBox();
         if (!buttonBox) {
-          this.logger.warn('Unclickable (walk button)');
+          logger.warn('Unclickable (walk button)');
           return;
         }
         await this.page.mouse.click(buttonBox.x + 12, buttonBox.y + 12);
@@ -148,7 +150,7 @@ export default class RaidwarRunner extends RunnerBase {
           ) {
             const iconBox = await appealIcon.boundingBox();
             if (!iconBox) {
-              this.logger.warn('Unclickable (appeal button)');
+              logger.warn('Unclickable (appeal button)');
               return;
             }
             await this.page.mouse.click(iconBox.x + 7, iconBox.y + 7);

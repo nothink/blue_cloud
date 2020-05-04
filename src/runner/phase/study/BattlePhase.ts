@@ -1,3 +1,5 @@
+import logger from '@/common/logger';
+
 import { StudyPhase } from '../../base/PhaseBase';
 
 /**
@@ -9,7 +11,7 @@ export default class BattlePhase extends StudyPhase {
    *  @returns 空のpromiseオブジェクト
    */
   public async proceed(): Promise<void> {
-    this.logger.debug('battle.');
+    logger.debug('battle.');
 
     await this.page.waitFor(600);
 
@@ -42,7 +44,7 @@ export default class BattlePhase extends StudyPhase {
         await this.page.waitFor(600);
       }
     } catch (e) {
-      this.logger.error(e);
+      logger.error(e);
       // 例外時はホームに戻る
       await this.runner.goHome();
     }
@@ -64,7 +66,7 @@ export default class BattlePhase extends StudyPhase {
         const button = await popup.$('.js_continueBtn');
         if (button) {
           process.stdout.write('\n[Continue]');
-          this.logger.debug('[Continue]');
+          logger.debug('[Continue]');
           await button.click();
         }
       }
@@ -107,7 +109,7 @@ export default class BattlePhase extends StudyPhase {
         count = await this.useSkillSomeone();
       } catch (e) {
         // スキルが無い場合はここに来るはず
-        this.logger.warn(e.stack);
+        logger.warn(e.stack);
       }
       await this.runner.redo();
       const canvas = await this.page.$('#canvas');

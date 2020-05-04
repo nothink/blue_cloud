@@ -1,4 +1,5 @@
-import bunyan from 'bunyan';
+import logger from '@/common/Logger';
+
 import config from 'config';
 import puppeteer from 'puppeteer-core';
 
@@ -6,7 +7,6 @@ import puppeteer from 'puppeteer-core';
  *  Puppeteerを用いたランナースクリプトのベースクラス
  */
 export default abstract class RunnerBase {
-  public logger!: bunyan;
   public page!: puppeteer.Page;
 
   protected browser!: puppeteer.Browser;
@@ -21,11 +21,6 @@ export default abstract class RunnerBase {
    *  コンストラクタ
    */
   constructor() {
-    this.logger = bunyan.createLogger({
-      level: 'info',
-      name: 'blue_cloud',
-      stream: process.stdout,
-    });
     this.config = config;
     this.baseUrl = this.config.get('baseUrl');
   }
@@ -41,7 +36,7 @@ export default abstract class RunnerBase {
    *  @returns 空のpromiseオブジェクト
    */
   public async init(): Promise<void> {
-    this.logger.debug('launching browser...');
+    logger.debug('launching browser...');
     this.browser = await puppeteer.launch({
       args: this.config.get('chrome.args') as string[],
       defaultViewport: this.config.get('chrome.defaultViewport'),
@@ -104,7 +99,7 @@ export default abstract class RunnerBase {
         await this.runOnce(); // アクションひとつ
         await this.page.waitFor(100);
       } catch (e) {
-        this.logger.warn(e.stack);
+        logger.warn(e.stack);
         await this.page.waitFor(300);
         await this.redo();
       }
@@ -116,7 +111,7 @@ export default abstract class RunnerBase {
    *  @returns 空のpromiseオブジェクト
    */
   public async close(): Promise<void> {
-    this.logger.info('closing browser...');
+    logger.info('closing browser...');
     await this.browser.close();
   }
 
@@ -135,8 +130,8 @@ export default abstract class RunnerBase {
           break;
         }
       } catch (e) {
-        this.logger.error('exeption:');
-        this.logger.error(e.message);
+        logger.error('exeption:');
+        logger.error(e.message);
       } finally {
         await this.page.waitFor(500);
       }
@@ -201,7 +196,7 @@ export default abstract class RunnerBase {
         await this.browser.close();
       }
     } catch (e) {
-      this.logger.error(e.message + e.stack);
+      logger.error(e.message + e.stack);
       throw e;
     } finally {
       process.exit(0);

@@ -1,3 +1,5 @@
+import logger from '@/common/Logger';
+
 import RunnerBase from './base/RunnerBase';
 
 import url from 'url';
@@ -92,7 +94,7 @@ export default class StoryRunner extends RunnerBase {
 
       default:
         await this.page.waitFor(300);
-        this.logger.warn(`unknown phase: "${this.phase}"`);
+        logger.warn(`unknown phase: "${this.phase}"`);
         return this.goHome();
     }
   }
@@ -124,7 +126,7 @@ export default class StoryRunner extends RunnerBase {
         }
       }
     } catch (e) {
-      this.logger.debug('going discovery animation...');
+      logger.debug('going discovery animation...');
       await this.page.waitFor(1000);
     }
   }
@@ -141,7 +143,7 @@ export default class StoryRunner extends RunnerBase {
         { timeout: 5000 }
       );
     } catch (e) {
-      this.logger.debug('unknown path?');
+      logger.debug('unknown path?');
     }
   }
 
@@ -229,7 +231,7 @@ export default class StoryRunner extends RunnerBase {
         }
       }
     } catch (e) {
-      this.logger.debug('unclickable canvas?');
+      logger.debug('unclickable canvas?');
       await this.page.waitFor(300);
     }
   }

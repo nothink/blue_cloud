@@ -1,3 +1,5 @@
+import logger from '@/common/logger';
+
 import { StudyPhase } from '../../base/PhaseBase';
 
 import StudyRunner from '../../StudyRunner';
@@ -54,7 +56,7 @@ export default class QuestPhase extends StudyPhase {
 
     // 集中pt不足の時は集中炭酸を使う
     if (this.runner.usingSpark) {
-      this.runner.logger.debug('using spark.');
+      logger.debug('using spark.');
       await this.useSpark();
     }
   }
@@ -183,7 +185,7 @@ export default class QuestPhase extends StudyPhase {
       await this.page.waitFor(200);
       left = next.diff(moment());
     }
-    this.logger.info('Reboot...');
+    logger.info('Reboot...');
 
     for (;;) {
       try {

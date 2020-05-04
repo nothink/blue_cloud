@@ -1,6 +1,5 @@
 import StudyRunner from '../StudyRunner';
 
-import bunyan from 'bunyan';
 import puppeteer from 'puppeteer-core';
 
 // TODO: Abstract Factory パターンを用いてPhase生成を単純化したい
@@ -19,7 +18,6 @@ import puppeteer from 'puppeteer-core';
  */
 export interface PhaseBase {
   page: puppeteer.Page;
-  logger: bunyan;
 
   /**
    *  単一処理の一単位 (interface)
@@ -30,7 +28,6 @@ export interface PhaseBase {
 
 export abstract class StudyPhase implements PhaseBase {
   public page!: puppeteer.Page;
-  public logger!: bunyan;
   protected runner: StudyRunner;
 
   /**
@@ -39,7 +36,6 @@ export abstract class StudyPhase implements PhaseBase {
   constructor(runner: StudyRunner) {
     this.runner = runner;
     this.page = runner.page;
-    this.logger = runner.logger;
   }
 
   /**

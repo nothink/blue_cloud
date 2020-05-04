@@ -16,7 +16,9 @@
 
     "moduleResolution": "node",
     "baseUrl": ".",
-    "paths": {},
+    "paths": {
+      "@/*": ["./src/*"]
+    },
     "esModuleInterop": true,
 
     "emitDecoratorMetadata": true,
