@@ -1,4 +1,6 @@
+import config from '@/common/Config';
 import logger from '@/common/Logger';
+import Puppet from '@/common/Puppet';
 
 import RunnerBase from './base/RunnerBase';
 
@@ -20,13 +22,13 @@ export default class StoryRunner extends RunnerBase {
   constructor() {
     super();
 
-    this.eventId = this.config.get('story.eventId');
-    this.questId = this.config.get('story.questId');
-    this.usingSpecial = this.config.get('story.usingSpecial');
+    this.eventId = config.get('story.eventId');
+    this.questId = config.get('story.questId');
+    this.usingSpecial = config.get('story.usingSpecial');
 
     // ふむふむホーム（ふむふむの基準ページは、イベントIDとクエストIDに依存する）
     this.homeUrl =
-      `${this.config.get('storyHomeUrlBase')}` +
+      `${config.get('storyHomeUrlBase')}` +
       `?eventId=${this.eventId}&questId=${this.questId}`;
   }
 
@@ -52,7 +54,7 @@ export default class StoryRunner extends RunnerBase {
    *      animation: ふむふむ本シナリオ
    */
   get phase(): string {
-    const current = url.parse(this.page.url());
+    const current = url.parse(Puppet.page.url());
     if (!current || !current.pathname || current.pathname === '/') {
       // 初回、ないしは該当なしの場合は空ステータス
       return '';
@@ -93,7 +95,7 @@ export default class StoryRunner extends RunnerBase {
         return this.goHome();
 
       default:
-        await this.page.waitFor(300);
+        await Puppet.page.waitFor(300);
         logger.warn(`unknown phase: "${this.phase}"`);
         return this.goHome();
     }
@@ -110,15 +112,15 @@ export default class StoryRunner extends RunnerBase {
       // バー利用直後は再判定
       return;
     }
-    await this.page.waitFor(500);
+    await Puppet.page.waitFor(500);
 
     try {
-      const button = await this.page.$('.questTouchArea');
+      const button = await Puppet.page.$('.questTouchArea');
       if (button) {
         const buttonBox = await button.boundingBox();
         if (buttonBox) {
           // 座標をクリック
-          const mouse = await this.page.mouse;
+          const mouse = await Puppet.page.mouse;
           await mouse.click(buttonBox.x + 280, buttonBox.y + 280);
         } else {
           // エリア取得失敗時はリロード
@@ -127,7 +129,7 @@ export default class StoryRunner extends RunnerBase {
       }
     } catch (e) {
       logger.debug('going discovery animation...');
-      await this.page.waitFor(1000);
+      await Puppet.page.waitFor(1000);
     }
   }
 
@@ -138,7 +140,7 @@ export default class StoryRunner extends RunnerBase {
   private async passDiscoveryAnimation(): Promise<void> {
     // このアニメーションは遷移終了まで待たないとエラーに飛ぶ
     try {
-      await this.browser.waitForTarget(
+      await Puppet.browser.waitForTarget(
         (target) => url.parse(target.url()).pathname === '/story/quest/event',
         { timeout: 5000 }
       );
@@ -157,8 +159,8 @@ export default class StoryRunner extends RunnerBase {
     let sec = 0;
     let isLoveLove: boolean;
     try {
-      const area = await this.page.$('.loveloveModeTime');
-      const timestr = await this.page.evaluate((elem) => {
+      const area = await Puppet.page.$('.loveloveModeTime');
+      const timestr = await Puppet.page.evaluate((elem) => {
         return elem.textContent;
       }, area);
       const times = timestr.split(':');
@@ -168,29 +170,31 @@ export default class StoryRunner extends RunnerBase {
       isLoveLove = false;
     }
     // フィーバー（ラブラブ差し入れ）かのチェック
-    const isFever = await this.page.$eval('h1', (elem) => {
+    const isFever = await Puppet.page.$eval('h1', (elem) => {
       return elem.getAttribute('class') === 'eventFeverTitle';
     });
 
     if (isLoveLove && isFever && sec < 15 && this.usingSpecial) {
-      await this.page.waitFor((sec + 5) * 1000);
-      const item = await this.page.$('#js_openItemPopup');
+      await Puppet.page.waitFor((sec + 5) * 1000);
+      const item = await Puppet.page.$('#js_openItemPopup');
       if (item) {
         await item.click();
       }
-      await this.page.waitFor(200);
-      const confirm = await this.page.$('#js_specialItemButton.jsTouchActive');
+      await Puppet.page.waitFor(200);
+      const confirm = await Puppet.page.$(
+        '#js_specialItemButton.jsTouchActive'
+      );
       if (confirm) {
         return confirm.click();
       }
       // ボタンがjsTouchActiveでないときは以降続行
-      const close = await this.page.$('.closePopBtn');
+      const close = await Puppet.page.$('.closePopBtn');
       if (close) {
         await close.click();
         return this.redo();
       }
     } else {
-      const button = await this.page.$('#js_normalItemButton');
+      const button = await Puppet.page.$('#js_normalItemButton');
       if (button) {
         return button.click();
       }
@@ -202,10 +206,10 @@ export default class StoryRunner extends RunnerBase {
    *  @returns 空のpromiseオブジェクト
    */
   private async passEventAnimation(): Promise<void> {
-    const canvas = await this.page.$('#canvas');
+    const canvas = await Puppet.page.$('#canvas');
     if (canvas) {
       const canvasBox = await canvas.boundingBox();
-      const mouse = await this.page.mouse;
+      const mouse = await Puppet.page.mouse;
       if (canvasBox && mouse) {
         // 座標をクリック
         await mouse.click(canvasBox.x + 300, canvasBox.y + 400);
@@ -218,13 +222,13 @@ export default class StoryRunner extends RunnerBase {
    *  @returns 空のpromiseオブジェクト
    */
   private async passLevelupAnimation(): Promise<void> {
-    await this.page.waitFor(300);
+    await Puppet.page.waitFor(300);
     try {
-      const canvas = await this.page.$('#canvas');
+      const canvas = await Puppet.page.$('#canvas');
       // TODO: ボタン飛ばし入れる？
       if (canvas) {
         const canvasBox = await canvas.boundingBox();
-        const mouse = await this.page.mouse;
+        const mouse = await Puppet.page.mouse;
         if (canvasBox && mouse) {
           // 座標をクリック
           await mouse.click(canvasBox.x + 210, canvasBox.y + 265);
@@ -232,7 +236,7 @@ export default class StoryRunner extends RunnerBase {
       }
     } catch (e) {
       logger.debug('unclickable canvas?');
-      await this.page.waitFor(300);
+      await Puppet.page.waitFor(300);
     }
   }
 
@@ -241,10 +245,10 @@ export default class StoryRunner extends RunnerBase {
    *  @returns 空のpromiseオブジェクト
    */
   private async passPointAnimation(): Promise<void> {
-    const canvas = await this.page.$('#canvas');
+    const canvas = await Puppet.page.$('#canvas');
     if (canvas) {
       const canvasBox = await canvas.boundingBox();
-      const mouse = await this.page.mouse;
+      const mouse = await Puppet.page.mouse;
       if (canvasBox && mouse) {
         // 座標をクリック
         await mouse.click(canvasBox.x + 160, canvasBox.y + 250);
@@ -257,7 +261,7 @@ export default class StoryRunner extends RunnerBase {
    *  @returns 空のpromiseオブジェクト
    */
   private async checkEventResult(): Promise<void> {
-    const button = await this.page.$('.btnPrimary');
+    const button = await Puppet.page.$('.btnPrimary');
     if (button) {
       await button.click();
     }
@@ -268,7 +272,7 @@ export default class StoryRunner extends RunnerBase {
    *  @returns 空のpromiseオブジェクト
    */
   private async passTimeout(): Promise<void> {
-    const button = await this.page.$('.btnPrimary');
+    const button = await Puppet.page.$('.btnPrimary');
     if (button) {
       await button.click();
     }
@@ -283,8 +287,8 @@ export default class StoryRunner extends RunnerBase {
     // 中断ダイアログの可否をチェック
     try {
       const popupSel = '.popup#outStamina';
-      if (await this.page.$(popupSel)) {
-        const display = await this.page.$eval(popupSel, (item: Element) => {
+      if (await Puppet.page.$(popupSel)) {
+        const display = await Puppet.page.$eval(popupSel, (item: Element) => {
           const style = item.getAttribute('style') || '';
           if (style.includes('block')) {
             return true;
@@ -301,22 +305,22 @@ export default class StoryRunner extends RunnerBase {
       return Promise.resolve(false);
     }
 
-    const buttons = await this.page.$$('#outStamina a.btnShadow');
+    const buttons = await Puppet.page.$$('#outStamina a.btnShadow');
     while (buttons.length > 0) {
       const button = buttons.shift();
       if (!button) {
         continue;
       }
-      const title = await this.page.evaluate((item: Element) => {
+      const title = await Puppet.page.evaluate((item: Element) => {
         return item.textContent;
       }, button);
       if (title === '使用する') {
         const buttonBox = await button.boundingBox();
         // 座標をクリック
-        const mouse = await this.page.mouse;
+        const mouse = await Puppet.page.mouse;
         if (buttonBox) {
           await mouse.click(buttonBox.x + 80, buttonBox.y + 20);
-          const confirm = await this.page.$('#confirmPopOkBtn');
+          const confirm = await Puppet.page.$('#confirmPopOkBtn');
           if (confirm) {
             const confirmBox = await confirm.boundingBox();
             if (confirmBox) {

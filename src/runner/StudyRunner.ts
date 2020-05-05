@@ -1,4 +1,6 @@
+import config from '@/common/Config';
 import logger from '@/common/Logger';
+import Puppet from '@/common/Puppet';
 
 import RunnerBase from './base/RunnerBase';
 
@@ -35,17 +37,17 @@ export default class StudyRunner extends RunnerBase {
     super();
 
     // テスト勉強ホーム
-    this.homeUrl = this.config.get('studyHomeUrl');
+    this.homeUrl = config.get('studyHomeUrl');
 
     this.studyTarget = studyTarget || 'level';
     if (['level', 'ring'].indexOf(this.studyTarget) === -1) {
       throw Error(`Unknown Target: ${this.studyTarget}`);
     }
 
-    this.rank = this.config.get('study.testRank') || 1;
+    this.rank = config.get('study.testRank') || 1;
 
-    this.usingSpark = this.config.get('study.usingSpark');
-    this.usingSkill = this.config.get('study.usingSkill');
+    this.usingSpark = config.get('study.usingSpark');
+    this.usingSkill = config.get('study.usingSkill');
   }
 
   /**
@@ -68,7 +70,7 @@ export default class StudyRunner extends RunnerBase {
    *      (http://vcard.ameba.jp/s#study/battle/result)
    */
   get phase(): string {
-    const current = url.parse(this.page.url());
+    const current = url.parse(Puppet.page.url());
     if (!current || !current.pathname) {
       // 初回、ないしは該当なしの場合は空ステータス
       return '';
@@ -142,7 +144,7 @@ export default class StudyRunner extends RunnerBase {
       }
 
       default:
-        await this.page.waitFor(300);
+        await Puppet.page.waitFor(300);
         logger.warn(`unknown phase: "${this.phase}"`);
         return this.goHome();
     }

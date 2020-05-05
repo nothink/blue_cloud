@@ -48,11 +48,8 @@ async function main(): Promise<void> {
       return;
   }
 
-  if (runner) {
-    await runner.init();
-    await runner.run();
-    return runner.close();
-  }
+  await runner.run();
+
   return;
 }
 

@@ -1,4 +1,5 @@
 import logger from '@/common/logger';
+import Puppet from '@/common/Puppet';
 
 import { StudyPhase } from '../../base/PhaseBase';
 
@@ -38,7 +39,7 @@ export default class QuestPhase extends StudyPhase {
     // 炭酸不許可で集中pt不足の時は待機してトップに戻る
     if (!this.runner.usingSpark && conc < this.studyInfo.cost) {
       await this.runner.goBaseHome();
-      await this.page.waitFor(1000);
+      await Puppet.page.waitFor(1000);
       await this.takeBreak(conc);
       return;
     }
@@ -48,8 +49,8 @@ export default class QuestPhase extends StudyPhase {
 
     // クエストを選択（およびクリック）
     const buttonSel = `[data-state*="${this.studyInfo.id}"]`;
-    // await this.page.click(buttonSel);
-    await this.page.$eval(buttonSel, (item: Element) => {
+    // await Puppet.page.click(buttonSel);
+    await Puppet.page.$eval(buttonSel, (item: Element) => {
       const button = item as HTMLElement;
       button.click();
     });
@@ -72,8 +73,8 @@ export default class QuestPhase extends StudyPhase {
     // 中断ダイアログの可否をチェック
     try {
       const dialogSel = '.js_popupReStartSelect';
-      if (await this.page.$(dialogSel)) {
-        const display = await this.page.$eval(dialogSel, (item: Element) => {
+      if (await Puppet.page.$(dialogSel)) {
+        const display = await Puppet.page.$eval(dialogSel, (item: Element) => {
           const cls = item.getAttribute('class') || '';
           if (cls.includes('block')) {
             return true;
@@ -91,14 +92,14 @@ export default class QuestPhase extends StudyPhase {
     }
 
     // 再開ボタンが存在する時
-    const button = await this.page.$('.js_restart.btn');
+    const button = await Puppet.page.$('.js_restart.btn');
     if (button) {
       await button.click();
       return Promise.resolve(true);
     }
     // 結果ボタンが存在するとき
     const resultSel = ".btn.btnPrimary[data-href='#study/battle/result']";
-    const resultButton = await this.page.$(resultSel);
+    const resultButton = await Puppet.page.$(resultSel);
     if (resultButton) {
       await resultButton.click();
       return Promise.resolve(true);
@@ -112,8 +113,8 @@ export default class QuestPhase extends StudyPhase {
    */
   private async getCurrentConcentration(): Promise<number> {
     const pointSel = 'div.cell.vTop.textRight > div > span:nth-child(1)';
-    if (await this.page.$(pointSel)) {
-      return this.page.$eval(pointSel, (item: Element) => {
+    if (await Puppet.page.$(pointSel)) {
+      return Puppet.page.$eval(pointSel, (item: Element) => {
         return Number(item.textContent);
       });
     }
@@ -128,7 +129,7 @@ export default class QuestPhase extends StudyPhase {
     let infoKey: string;
 
     const tabSel = '.js_btnTab.js_btnScenario';
-    const tabs = await this.page.$$(tabSel);
+    const tabs = await Puppet.page.$$(tabSel);
     if ((this.runner as StudyRunner).studyTarget === 'level') {
       // tabs[0] が選択されているはず
       await tabs[0].click();
@@ -136,10 +137,10 @@ export default class QuestPhase extends StudyPhase {
       infoKey = 'TOM';
     } else if ((this.runner as StudyRunner).studyTarget === 'ring') {
       await tabs[1].click();
-      await this.page.waitFor(300);
+      await Puppet.page.waitFor(300);
 
       const divSel = 'div.bgCream.pt5.ph5.pb10 > div:nth-child(2) > div';
-      const sphere = await this.page.$$eval(divSel, (divs: Element[]) => {
+      const sphere = await Puppet.page.$$eval(divSel, (divs: Element[]) => {
         for (const d of divs) {
           const attr = d.getAttribute('class') || '';
           if (attr.includes('Sweet')) {
@@ -182,7 +183,7 @@ export default class QuestPhase extends StudyPhase {
       process.stdout.write(
         `\r[next: ${nextStr}]: ` + `${leftStr} remaining...`
       );
-      await this.page.waitFor(200);
+      await Puppet.page.waitFor(200);
       left = next.diff(moment());
     }
     logger.info('Reboot...');
@@ -192,7 +193,7 @@ export default class QuestPhase extends StudyPhase {
         await this.runner.goBaseHome();
         break;
       } catch (e) {
-        await this.page.waitFor(200);
+        await Puppet.page.waitFor(200);
         continue;
       }
     }
@@ -206,7 +207,7 @@ export default class QuestPhase extends StudyPhase {
   private async useSpark(): Promise<void> {
     try {
       const popupSel = '.js_output.absolute.block';
-      const popup = await this.page.$(popupSel);
+      const popup = await Puppet.page.$(popupSel);
       if (!popup) {
         // ダイアログが存在しない時は通常時
         return;
@@ -217,7 +218,7 @@ export default class QuestPhase extends StudyPhase {
     }
 
     // 補充ボタンではなく再開ボタンが有る場合は戻る
-    const button = await this.page.$('.js_restart.btn');
+    const button = await Puppet.page.$('.js_restart.btn');
     if (button) {
       await button.click();
       return;
@@ -225,7 +226,7 @@ export default class QuestPhase extends StudyPhase {
 
     // 補充ボタン押下
     const healSel = '.btn.btnPrimary.js_updateAp';
-    const healButton = await this.page.$(healSel);
+    const healButton = await Puppet.page.$(healSel);
     if (healButton) {
       try {
         await healButton.click();
@@ -245,19 +246,19 @@ export default class QuestPhase extends StudyPhase {
     const closedSel = `div.floatRight.sprite1_triangle${groupStr}`;
     const openSel = `div.floatRight.sprite1_triangle.rotate180${groupStr}`;
     try {
-      if (await this.page.$(openSel)) {
+      if (await Puppet.page.$(openSel)) {
         // 対象セレクタは開いている
       } else {
         throw new EvalError('closed.');
       }
     } catch (e) {
       // 対象セレクタは閉じているので開く
-      // this.page.click(closedSel);
-      this.page.$eval(closedSel, (item: Element) => {
+      // Puppet.page.click(closedSel);
+      Puppet.page.$eval(closedSel, (item: Element) => {
         const button = item as HTMLElement;
         button.click();
       });
-      await this.page.waitFor(1000);
+      await Puppet.page.waitFor(1000);
     }
   }
 }

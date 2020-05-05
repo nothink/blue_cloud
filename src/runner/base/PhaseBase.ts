@@ -1,7 +1,5 @@
 import StudyRunner from '../StudyRunner';
 
-import puppeteer from 'puppeteer-core';
-
 // TODO: Abstract Factory パターンを用いてPhase生成を単純化したい
 // https://refactoring.guru/design-patterns/abstract-factory/typescript/example
 
@@ -17,8 +15,6 @@ import puppeteer from 'puppeteer-core';
  *  単一の段階(単一URL遷移)で行う処理単位
  */
 export interface PhaseBase {
-  page: puppeteer.Page;
-
   /**
    *  単一処理の一単位 (interface)
    *  @returns 空のpromiseオブジェクト
@@ -27,7 +23,6 @@ export interface PhaseBase {
 }
 
 export abstract class StudyPhase implements PhaseBase {
-  public page!: puppeteer.Page;
   protected runner: StudyRunner;
 
   /**
@@ -35,7 +30,6 @@ export abstract class StudyPhase implements PhaseBase {
    */
   constructor(runner: StudyRunner) {
     this.runner = runner;
-    this.page = runner.page;
   }
 
   /**

@@ -1,4 +1,5 @@
 import logger from '@/common/logger';
+import Puppet from '@/common/Puppet';
 
 import { StudyPhase } from '../../base/PhaseBase';
 import StudyInfo from '../../../units/StudyInfo';
@@ -17,12 +18,12 @@ export default class PartnerPhase extends StudyPhase {
    */
   public async proceed(): Promise<void> {
     logger.debug('Select partner.');
-    await this.page.waitFor(2000);
+    await Puppet.page.waitFor(2000);
 
     const partnersSel =
       'section.bgTiffanyBlue > div.relative.bgPartner.pt5 > div[data-href="#study/deck/select"]';
 
-    const partners = await this.page.$$(partnersSel);
+    const partners = await Puppet.page.$$(partnersSel);
     if (this.runner.studyTarget === 'level') {
       // 通常の時はランダムで選択
       const i = Math.floor(Math.random() * partners.length);

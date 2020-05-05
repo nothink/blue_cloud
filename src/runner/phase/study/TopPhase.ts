@@ -1,3 +1,5 @@
+import Puppet from '@/common/Puppet';
+
 import { StudyPhase } from '../../base/PhaseBase';
 
 /**
@@ -13,7 +15,7 @@ export default class TopPhase extends StudyPhase {
 
     // TODO: ここawaitせずにreturnしていい？
     // Promise<Response|null> なのでそのままでは返せない
-    await this.page.goto('https://vcard.ameba.jp/s#study/quest/select', {
+    await Puppet.page.goto('https://vcard.ameba.jp/s#study/quest/select', {
       waitUntil: 'networkidle2',
     });
   }

@@ -1,4 +1,6 @@
+import config from '@/common/Config';
 import logger from '@/common/Logger';
+import Puppet from '@/common/Puppet';
 
 import RunnerBase from './base/RunnerBase';
 
@@ -20,10 +22,10 @@ export default class ChampionshipRunner extends RunnerBase {
   constructor() {
     super();
 
-    // this.usingCandy = this.config.get("championship.usingCandy");
+    // this.usingCandy = config.get("championship.usingCandy");
 
     // カリスマホーム
-    this.homeUrl = this.config.get('championshipHomeUrl');
+    this.homeUrl = config.get('championshipHomeUrl');
 
     // 一時保存した発揮値をリストア
     const tmpPath = `config/${process.env.NODE_ENV}.tmp`;
@@ -68,7 +70,7 @@ export default class ChampionshipRunner extends RunnerBase {
    *              boss/result?battleId=5471695_1_1553704442335)
    */
   get phase(): string {
-    const current = url.parse(this.page.url());
+    const current = url.parse(Puppet.page.url());
     if (!current || !current.pathname || current.pathname === '/') {
       // 初回、ないしは該当なしの場合は空ステータス
       return '';
@@ -106,7 +108,7 @@ export default class ChampionshipRunner extends RunnerBase {
       case 'result':
         return this.skipResult();
       default:
-        await this.page.waitFor(300);
+        await Puppet.page.waitFor(300);
         logger.warn(`unknown phase: "${this.phase}"`);
         return this.goHome();
     }
@@ -118,7 +120,7 @@ export default class ChampionshipRunner extends RunnerBase {
    */
   private async walk(): Promise<void> {
     // ボタン存在可否
-    const button = await this.page.$('#js_btnFight');
+    const button = await Puppet.page.$('#js_btnFight');
     while (button) {
       // ダイアログが表示されている場合飛ばす
       await this.passDialog();
@@ -126,7 +128,7 @@ export default class ChampionshipRunner extends RunnerBase {
       // 「さがす」ボタンのクリック可否性チェック
       let clickable: boolean;
       try {
-        clickable = await this.page.$eval('#js_btnFight', (item: Element) => {
+        clickable = await Puppet.page.$eval('#js_btnFight', (item: Element) => {
           const cls = item.getAttribute('class') || '';
           if (cls.includes('btnFightOn')) {
             return true;
@@ -143,7 +145,7 @@ export default class ChampionshipRunner extends RunnerBase {
           logger.warn('Unclickable (walk button)');
           return;
         }
-        await this.page.mouse.click(buttonBox.x + 12, buttonBox.y + 12);
+        await Puppet.page.mouse.click(buttonBox.x + 12, buttonBox.y + 12);
 
         const status = await Promise.all([
           this.getHearts(),
@@ -153,7 +155,7 @@ export default class ChampionshipRunner extends RunnerBase {
         const life = status[0];
         const scene = status[1];
         // アピールタイムで目標のライフを確保したかチェック
-        const appealIcon = await this.page.$('.js_appealTime');
+        const appealIcon = await Puppet.page.$('.js_appealTime');
         if (appealIcon) {
           if (
             (scene === 'user' && life > 1) ||
@@ -164,13 +166,13 @@ export default class ChampionshipRunner extends RunnerBase {
               logger.warn('Unclickable (appeal button)');
               return;
             }
-            await this.page.mouse.click(iconBox.x + 7, iconBox.y + 7);
+            await Puppet.page.mouse.click(iconBox.x + 7, iconBox.y + 7);
             return;
           }
         }
       } else {
         // 0.01秒待機
-        // await this.page.waitFor(10);
+        // await Puppet.page.waitFor(10);
       }
     }
   }
@@ -191,10 +193,10 @@ export default class ChampionshipRunner extends RunnerBase {
         div.clearfix.fcWhite.fs12.ph5.pt10 > div.floatRight.half.textRight > \
         p:nth-child(2)';
     const status = await Promise.all([
-      this.page.$eval(mySel, (item: Element) => {
+      Puppet.page.$eval(mySel, (item: Element) => {
         return Number(item.textContent);
       }),
-      this.page.$eval(tgtSel, (item: Element) => {
+      Puppet.page.$eval(tgtSel, (item: Element) => {
         return Number(item.textContent);
       }),
       this.getHearts(),
@@ -210,11 +212,11 @@ export default class ChampionshipRunner extends RunnerBase {
       this.goHome();
       return;
     }
-    const buttonDivs = await this.page.$$('.js_heartSelectionBtn');
+    const buttonDivs = await Puppet.page.$$('.js_heartSelectionBtn');
     const button = buttonDivs[needLife - 1];
     const buttonBox = await button.boundingBox();
     if (buttonBox) {
-      await this.page.mouse.click(buttonBox.x + 1, buttonBox.y + 1);
+      await Puppet.page.mouse.click(buttonBox.x + 1, buttonBox.y + 1);
     }
   }
 
@@ -234,11 +236,11 @@ export default class ChampionshipRunner extends RunnerBase {
         div.dropShadow.relative.z1 > div.textCenter.relative.fs12 > \
         span:nth-child(2)';
     const status = await Promise.all([
-      this.page.$eval(curSel, (item: Element) => {
+      Puppet.page.$eval(curSel, (item: Element) => {
         const text = item.textContent || '';
         return Number(text.replace(/,/g, ''));
       }),
-      this.page.$eval(maxSel, (item: Element) => {
+      Puppet.page.$eval(maxSel, (item: Element) => {
         const text = item.textContent || '';
         return Number(text.substring(1).replace(/,/g, ''));
       }),
@@ -288,21 +290,21 @@ export default class ChampionshipRunner extends RunnerBase {
     }
     if (isFullGauge && !hasBuff && isRare && hearts === 5) {
       // ゲージ満タン, バフ未発動, レア敵、ハート満タンの時はバフ着火ボタンを押す
-      const fire = await this.page.$('.js_fireStealth');
+      const fire = await Puppet.page.$('.js_fireStealth');
       if (fire) {
         const fireBox = await fire.boundingBox();
         if (fireBox) {
-          await this.page.mouse.click(fireBox.x + 1, fireBox.y + 1);
-          await this.page.waitFor(400);
+          await Puppet.page.mouse.click(fireBox.x + 1, fireBox.y + 1);
+          await Puppet.page.waitFor(400);
         }
       }
     }
 
-    const buttonDivs = await this.page.$$('.js_heartSelectionBtn');
+    const buttonDivs = await Puppet.page.$$('.js_heartSelectionBtn');
     const button = await buttonDivs[needLife - 1];
     const buttonBox = await button.boundingBox();
     if (buttonBox) {
-      await this.page.mouse.click(buttonBox.x + 1, buttonBox.y + 1);
+      await Puppet.page.mouse.click(buttonBox.x + 1, buttonBox.y + 1);
     }
   }
 
@@ -321,7 +323,7 @@ export default class ChampionshipRunner extends RunnerBase {
   private async skipResult(): Promise<void> {
     const selector = '.btnPrimary.jsTouchActive';
     try {
-      const button = await this.page.$(selector);
+      const button = await Puppet.page.$(selector);
       if (button) {
         await button.click();
       }
@@ -336,12 +338,12 @@ export default class ChampionshipRunner extends RunnerBase {
    *  @returns 空のpromiseオブジェクト
    */
   private async skipEncount(): Promise<void> {
-    const canvas = await this.page.$('#canvas');
+    const canvas = await Puppet.page.$('#canvas');
     try {
       while (canvas) {
         // canvasが無くなるまでクリック
         await canvas.click();
-        await this.page.waitFor(50);
+        await Puppet.page.waitFor(50);
       }
     } catch (e) {
       // canvas不在でここにくる
@@ -358,7 +360,7 @@ export default class ChampionshipRunner extends RunnerBase {
    */
   private async passDialog(): Promise<void> {
     // スタミナ不足ダイアログの可否をチェック
-    const display = await this.page.$eval('#outStamina', (item: Element) => {
+    const display = await Puppet.page.$eval('#outStamina', (item: Element) => {
       const style = item.getAttribute('style') || '';
       if (style.includes('block')) {
         return true;
@@ -369,23 +371,23 @@ export default class ChampionshipRunner extends RunnerBase {
       return;
     }
 
-    const buttons = await this.page.$$('#outStamina a.btnShadow');
+    const buttons = await Puppet.page.$$('#outStamina a.btnShadow');
     while (buttons.length > 0) {
       const button = buttons.shift();
       if (button) {
-        const title = await this.page.evaluate((item: Element) => {
+        const title = await Puppet.page.evaluate((item: Element) => {
           return item.textContent;
         }, button);
         if (title === '使用する') {
           const buttonBox = await button.boundingBox();
           // 座標をクリック
           if (buttonBox) {
-            await this.page.mouse.click(buttonBox.x + 80, buttonBox.y + 20);
-            const confirm = await this.page.$('#confirmPopOkBtn');
+            await Puppet.page.mouse.click(buttonBox.x + 80, buttonBox.y + 20);
+            const confirm = await Puppet.page.$('#confirmPopOkBtn');
             if (confirm) {
               const confirmBox = await confirm.boundingBox();
               if (confirmBox) {
-                await this.page.mouse.click(
+                await Puppet.page.mouse.click(
                   confirmBox.x + 80,
                   confirmBox.y + 20
                 );
@@ -404,7 +406,7 @@ export default class ChampionshipRunner extends RunnerBase {
    *  @returns 現在のハートの数のプロミスオブジェクト(0-5)
    */
   private async getHearts(): Promise<number> {
-    const hearts = await this.page.$$('.inlineBlock.heartOn.js_heartOn');
+    const hearts = await Puppet.page.$$('.inlineBlock.heartOn.js_heartOn');
     return Promise.resolve(hearts.length);
   }
 
@@ -420,9 +422,9 @@ export default class ChampionshipRunner extends RunnerBase {
         div.cell.vMiddle.fs12.fcWhite.pl10.textCenter.outlineGreen > \
         p:nth-child(2)';
     try {
-      await this.page.waitForSelector(levelSel, { timeout: 300 });
+      await Puppet.page.waitForSelector(levelSel, { timeout: 300 });
       return Promise.resolve(
-        await this.page.$eval(levelSel, (item: Element) => {
+        await Puppet.page.$eval(levelSel, (item: Element) => {
           const text = (item as HTMLParagraphElement).textContent || '';
           const m = text.match(/[0-9]*/);
           if (m) {
@@ -448,9 +450,9 @@ export default class ChampionshipRunner extends RunnerBase {
         div.dropShadow.relative.z1 > div.table.fill.pt3.pb1 > \
         div:nth-child(1) > img';
     try {
-      await this.page.waitForSelector(rareSel, { timeout: 300 });
+      await Puppet.page.waitForSelector(rareSel, { timeout: 300 });
       return Promise.resolve(
-        await this.page.$eval(rareSel, (item: Element) => {
+        await Puppet.page.$eval(rareSel, (item: Element) => {
           const src = (item as HTMLImageElement).src;
           if (src.includes('icon_rare')) {
             return Promise.resolve(true);
@@ -469,7 +471,7 @@ export default class ChampionshipRunner extends RunnerBase {
    *  @returns booleanのPromise
    */
   private async isFullGauge(): Promise<boolean> {
-    if (await this.page.$('.gaugeFullAnime')) {
+    if (await Puppet.page.$('.gaugeFullAnime')) {
       return Promise.resolve(true);
     }
     return Promise.resolve(false);
@@ -480,8 +482,8 @@ export default class ChampionshipRunner extends RunnerBase {
    *  @returns booleanのPromise
    */
   private async hasBuff(): Promise<boolean> {
-    if (await this.page.$('.js_attackBuff')) {
-      return this.page.$eval('.js_attackBuff', (item) => {
+    if (await Puppet.page.$('.js_attackBuff')) {
+      return Puppet.page.$eval('.js_attackBuff', (item) => {
         const cls = item.getAttribute('class') || '';
         if (cls.includes('none')) {
           return Promise.resolve(false);
@@ -500,17 +502,20 @@ export default class ChampionshipRunner extends RunnerBase {
    *  @returns stringのPromise (boss/user)かundefined
    */
   private async getCurrentScene(): Promise<string> {
-    if (await this.page.$('.js_appealTime')) {
-      const scene = await this.page.$eval('.js_appealTime', (item: Element) => {
-        const href = (item as HTMLAnchorElement).href;
-        if (href.includes('boss')) {
-          return Promise.resolve('boss');
+    if (await Puppet.page.$('.js_appealTime')) {
+      const scene = await Puppet.page.$eval(
+        '.js_appealTime',
+        (item: Element) => {
+          const href = (item as HTMLAnchorElement).href;
+          if (href.includes('boss')) {
+            return Promise.resolve('boss');
+          }
+          if (href.includes('user')) {
+            return Promise.resolve('user');
+          }
+          return '';
         }
-        if (href.includes('user')) {
-          return Promise.resolve('user');
-        }
-        return '';
-      });
+      );
       return scene;
     }
     return Promise.resolve('');
