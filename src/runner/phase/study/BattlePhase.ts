@@ -12,8 +12,6 @@ export default class BattlePhase extends StudyPhase {
    *  @returns 空のpromiseオブジェクト
    */
   public async proceed(): Promise<void> {
-    logger.debug('battle.');
-
     await Puppet.page.waitFor(600);
 
     // コンテニューの時は飛ばす

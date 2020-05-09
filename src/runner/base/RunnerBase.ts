@@ -24,9 +24,12 @@ export default abstract class RunnerBase {
 
     while (!Puppet.page.isClosed()) {
       try {
-        await this.skipIfError();
+        const loadPromise = Puppet.page.waitForNavigation();
+        await this.skipError();
+        await this.waitLoading();
         await this.runOnce();
-        await Puppet.page.waitFor(100); // 基本感覚は 0.1s
+        await loadPromise;
+        await Puppet.page.waitFor(100); // 0.3s
       } catch (e) {
         logger.warn(e.stack);
         await Puppet.page.waitFor(300);
@@ -62,7 +65,7 @@ export default abstract class RunnerBase {
    *  ベースとなるURL(トップページ)に戻る
    *  @returns 空のpromiseオブジェクト
    */
-  public async goBaseHome(): Promise<void> {
+  public async goBasePage(): Promise<void> {
     await Puppet.page.goto(Const.BASE_URL, { waitUntil: 'networkidle2' });
   }
 
@@ -84,21 +87,44 @@ export default abstract class RunnerBase {
    *  エラーページの時、ページをスキップしてホーム指定したページに移動する
    *  @returns 空のpromiseオブジェクト
    */
-  private async skipIfError(): Promise<void> {
-    try {
-      const h1Sel = 'h1';
-      if (await Puppet.page.$(h1Sel)) {
-        const heading = await Puppet.page.$eval(h1Sel, (h1: Element) => {
-          return h1.textContent;
+  private async skipError(): Promise<void> {
+    // canvasページはエラーになりえない
+    const canvasSel = 'canvas';
+    if (await Puppet.page.$(canvasSel)) {
+      return;
+    }
+    // エラーの判定はh1の中身でのみ行える
+    const h1Sel = 'h1';
+    if (await Puppet.page.$(h1Sel)) {
+      const heading = await Puppet.page.$eval(h1Sel, (h1: Element) => {
+        return h1.textContent;
+      });
+      if (heading === 'エラー') {
+        // エラーページはh1にエラーとだけある
+        await Puppet.page.waitFor(300);
+        await this.goHome();
+      }
+    }
+  }
+
+  /**
+   *  ローディングが存在する場合、ロードが終わるまでしばし待つ
+   *  @returns 空のpromiseオブジェクト
+   */
+  private async waitLoading(): Promise<void> {
+    const loaderSel = 'js_loader';
+    if (await Puppet.page.$(loaderSel)) {
+      for (;;) {
+        const classes = await Puppet.page.$eval(loaderSel, (div: Element) => {
+          return div.classList;
         });
-        if (heading === 'エラー') {
+        if (classes.contains('none')) {
+          return;
+        } else {
           await Puppet.page.waitFor(300);
-          await this.goHome();
+          continue;
         }
       }
-    } catch (e) {
-      // 無い時はcanvasオンリーとか？
-      return;
     }
   }
 }

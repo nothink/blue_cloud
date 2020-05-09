@@ -3,6 +3,7 @@ import Const from '@/common/Const';
 import logger from '@/common/Logger';
 
 import puppeteer from 'puppeteer-core';
+import ora from 'ora';
 
 class Puppet {
   // TODO: close()されていない場所があるかも？
@@ -25,6 +26,8 @@ class Puppet {
   }
 
   public static async initialize(): Promise<void> {
+    const spinner = ora({ text: 'Initialize...', color: 'blue' }).start();
+
     const browser = await puppeteer.launch({
       args: config.get('chrome.args') as string[],
       defaultViewport: config.get('chrome.defaultViewport'),
@@ -54,6 +57,10 @@ class Puppet {
     process.on('SIGHUP', this.terminate);
     process.on('SIGINT', this.terminate);
     process.on('SIGTERM', this.terminate);
+
+    await this.goBasePage();
+
+    spinner.succeed('Initialized.');
   }
 
   public static async goBasePage(): Promise<void> {
@@ -73,6 +80,8 @@ class Puppet {
         "input[name='password']",
         config.get('account.password')
       );
+
+      // TODO: キャプチャ閉じの時間待ちを作る
 
       // 手で入る
       await this.page.waitFor(300000);

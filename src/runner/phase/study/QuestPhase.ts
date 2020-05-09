@@ -38,7 +38,7 @@ export default class QuestPhase extends StudyPhase {
 
     // 炭酸不許可で集中pt不足の時は待機してトップに戻る
     if (!this.runner.usingSpark && conc < this.studyInfo.cost) {
-      await this.runner.goBaseHome();
+      await this.runner.goBasePage();
       await Puppet.page.waitFor(1000);
       await this.takeBreak(conc);
       return;
@@ -190,7 +190,7 @@ export default class QuestPhase extends StudyPhase {
 
     for (;;) {
       try {
-        await this.runner.goBaseHome();
+        await this.runner.goBasePage();
         break;
       } catch (e) {
         await Puppet.page.waitFor(200);

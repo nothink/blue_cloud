@@ -1,4 +1,3 @@
-import logger from '@/common/logger';
 import Puppet from '@/common/Puppet';
 
 import { StudyPhase } from '../../base/PhaseBase';
@@ -12,7 +11,6 @@ export default class DeckPhase extends StudyPhase {
    *  @returns 空のpromiseオブジェクト
    */
   public async proceed(): Promise<void> {
-    logger.debug('Select deck.');
     await Puppet.page.waitFor(1000);
 
     // デッキタブの選択
