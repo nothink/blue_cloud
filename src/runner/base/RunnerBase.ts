@@ -24,12 +24,15 @@ export default abstract class RunnerBase {
 
     while (!Puppet.page.isClosed()) {
       try {
-        const loadPromise = Puppet.page.waitForNavigation();
+        const loadPromise = Puppet.page.waitForNavigation({
+          timeout: 30000,
+          waitUntil: 'networkidle2',
+        });
         await this.skipError();
         await this.waitLoading();
         await this.runOnce();
         await loadPromise;
-        await Puppet.page.waitFor(100); // 0.3s
+        await Puppet.page.waitFor(300); // 0.3s
       } catch (e) {
         logger.warn(e.stack);
         await Puppet.page.waitFor(300);
@@ -46,7 +49,7 @@ export default abstract class RunnerBase {
     for (;;) {
       try {
         const response = await Puppet.page.reload({
-          timeout: 20000,
+          timeout: 5000,
           waitUntil: 'networkidle2',
         });
         if (response.ok()) {
@@ -95,13 +98,14 @@ export default abstract class RunnerBase {
     }
     // エラーの判定はh1の中身でのみ行える
     const h1Sel = 'h1';
-    if (await Puppet.page.$(h1Sel)) {
-      const heading = await Puppet.page.$eval(h1Sel, (h1: Element) => {
+    const handle = await Puppet.page.$(h1Sel);
+    if (handle) {
+      const heading = await handle.evaluate((h1: Element) => {
         return h1.textContent;
       });
       if (heading === 'エラー') {
         // エラーページはh1にエラーとだけある
-        await Puppet.page.waitFor(300);
+        await Puppet.page.waitFor(100);
         await this.goHome();
       }
     }
@@ -121,7 +125,7 @@ export default abstract class RunnerBase {
         if (classes.contains('none')) {
           return;
         } else {
-          await Puppet.page.waitFor(300);
+          await Puppet.page.waitFor(2000);
           continue;
         }
       }

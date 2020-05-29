@@ -113,6 +113,7 @@ export default class QuestPhase extends StudyPhase {
    */
   private async getCurrentConcentration(): Promise<number> {
     const pointSel = 'div.cell.vTop.textRight > div > span:nth-child(1)';
+    await Puppet.page.waitForSelector(pointSel, { timeout: 10000 });
     if (await Puppet.page.$(pointSel)) {
       return Puppet.page.$eval(pointSel, (item: Element) => {
         return Number(item.textContent);
@@ -128,7 +129,8 @@ export default class QuestPhase extends StudyPhase {
   private async clickScenarioTab(): Promise<void> {
     let infoKey: string;
 
-    const tabSel = '.js_btnTab.js_btnScenario';
+    const tabSel = '.js_btnTab';
+    await Puppet.page.waitForSelector(tabSel, { timeout: 10000 });
     const tabs = await Puppet.page.$$(tabSel);
     if ((this.runner as StudyRunner).studyTarget === 'level') {
       // tabs[0] が選択されているはず

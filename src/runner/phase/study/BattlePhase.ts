@@ -100,9 +100,10 @@ export default class BattlePhase extends StudyPhase {
       return;
     }
 
-    let count = 0;
+    let count = NaN;
 
     while (isNaN(count)) {
+      logger.warn('is NaN.');
       try {
         await Puppet.page.waitFor(1900);
         count = await this.useSkillSomeone();
@@ -125,6 +126,7 @@ export default class BattlePhase extends StudyPhase {
    *  @returns 発動したスキル番号(0-9) / undefined: 発動可能スキルなし
    */
   private async useSkillSomeone(): Promise<number> {
+    logger.warn('do someone.');
     const canvas = await Puppet.page.$('#canvas');
     if (!canvas) {
       return Promise.resolve(NaN);
