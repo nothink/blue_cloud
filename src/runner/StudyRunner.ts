@@ -115,6 +115,8 @@ export default class StudyRunner extends RunnerBase {
    *  @returns 空のpromiseオブジェクト
    */
   protected async runOnce(): Promise<void> {
+    // ローディングのスキップ
+    await this.waitLoading();
     // Phaseで切り替える
     switch (this.phase) {
       case '':
@@ -147,6 +149,29 @@ export default class StudyRunner extends RunnerBase {
         await Puppet.page.waitFor(300);
         logger.warn(`unknown phase: "${this.phase}"`);
         return this.goHome();
+    }
+  }
+
+  // --------------------- utils ----------------------
+
+  /**
+   *  ローディングが存在する場合、ロードが終わるまでしばし待つ
+   *  @returns 空のpromiseオブジェクト
+   */
+  private async waitLoading(): Promise<void> {
+    const loaderSel = 'js_loader';
+    if (await Puppet.page.$(loaderSel)) {
+      for (;;) {
+        const classes = await Puppet.page.$eval(loaderSel, (div: Element) => {
+          return div.classList;
+        });
+        if (classes.contains('none')) {
+          return;
+        } else {
+          await Puppet.page.waitFor(2000);
+          continue;
+        }
+      }
     }
   }
 }

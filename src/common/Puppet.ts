@@ -48,6 +48,7 @@ class Puppet {
     // ダイアログはすべてOKで対応
     page.on('dialog', async (dialog) => {
       await dialog.accept();
+      await page.reload();
     });
 
     this._browser = browser;
@@ -72,21 +73,9 @@ class Puppet {
       this.page.goto('https://dauth.user.ameba.jp/login/ameba');
       await this.page.waitForNavigation();
 
-      await this.page.type(
-        "input[name='accountId']",
-        config.get('account.username')
-      );
-      await this.page.type(
-        "input[name='password']",
-        config.get('account.password')
-      );
-
       // TODO: キャプチャ閉じの時間待ちを作る
-
       // 手で入る
       await this.page.waitFor(300000);
-
-      this.page.click("input[type='submit']");
       await this.page.waitForNavigation();
       return;
     }

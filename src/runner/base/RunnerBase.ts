@@ -24,14 +24,17 @@ export default abstract class RunnerBase {
 
     while (!Puppet.page.isClosed()) {
       try {
-        const loadPromise = Puppet.page.waitForNavigation({
-          timeout: 30000,
-          waitUntil: 'networkidle2',
-        });
+        // エラーページをすっ飛ばす
         await this.skipError();
-        await this.waitLoading();
-        await this.runOnce();
-        await loadPromise;
+        // Navigation待機
+        await Promise.all([
+          Puppet.page.waitForNavigation({
+            timeout: 30000,
+            waitUntil: 'networkidle2',
+          }),
+          this.runOnce(),
+        ]);
+
         await Puppet.page.waitFor(300); // 0.3s
       } catch (e) {
         logger.warn(e.stack);
@@ -107,27 +110,6 @@ export default abstract class RunnerBase {
         // エラーページはh1にエラーとだけある
         await Puppet.page.waitFor(100);
         await this.goHome();
-      }
-    }
-  }
-
-  /**
-   *  ローディングが存在する場合、ロードが終わるまでしばし待つ
-   *  @returns 空のpromiseオブジェクト
-   */
-  private async waitLoading(): Promise<void> {
-    const loaderSel = 'js_loader';
-    if (await Puppet.page.$(loaderSel)) {
-      for (;;) {
-        const classes = await Puppet.page.$eval(loaderSel, (div: Element) => {
-          return div.classList;
-        });
-        if (classes.contains('none')) {
-          return;
-        } else {
-          await Puppet.page.waitFor(2000);
-          continue;
-        }
       }
     }
   }
