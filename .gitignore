@@ -66,8 +66,8 @@ dst
 log
 profs
 
-config/*
-!config/default.json
+#config/*
+#!config/default.json
 
 .vscode
 

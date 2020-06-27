@@ -1,0 +1,17 @@
+{
+  "chrome": {
+    "profilePath": "./profs/gf1"
+  },
+  "study": {
+    "testRank": 8,
+    "usingSpark": false,
+    "usingSkill": false
+  },
+  "story": {
+    "questId": 1,
+    "usingSpecial": true
+  },
+  "championship": {
+    "usingCandy": false
+  }
+}

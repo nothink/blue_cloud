@@ -1,0 +1,14 @@
+{
+  "chrome": {
+    "profilePath": "./profs/gf4"
+  },
+  "study": {
+    "testRank": 8,
+    "usingSpark": true,
+    "usingSkill": true
+  },
+  "story": {
+    "questId": 1,
+    "usingSpecial": true
+  }
+}

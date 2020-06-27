@@ -1,0 +1,14 @@
+{
+  "chrome": {
+    "profilePath": "./profs/gf5"
+  },
+  "study": {
+    "testRank": 1,
+    "usingSpark": false,
+    "usingSkill": true
+  },
+  "story": {
+    "questId": 1,
+    "usingSpecial": true
+  }
+}
