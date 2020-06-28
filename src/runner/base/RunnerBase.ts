@@ -24,21 +24,23 @@ export default abstract class RunnerBase {
 
     while (!Puppet.page.isClosed()) {
       try {
-        // エラーページをすっ飛ばす
+        // エラーページを飛ばす
         await this.skipError();
         // Navigation待機
+        // TODO: どうしてもここは落ちがち
+        // TODO: なので例外キャッチを明確に行いたい
         await Promise.all([
           Puppet.page.waitForNavigation({
-            timeout: 30000,
+            timeout: 28429,
             waitUntil: 'networkidle2',
           }),
           this.runOnce(),
         ]);
 
-        await Puppet.page.waitFor(300); // 0.3s
+        await Puppet.page.waitFor(200); // 0.2s
       } catch (e) {
         logger.warn(e.stack);
-        await Puppet.page.waitFor(300);
+        await Puppet.page.waitFor(220);
         await this.redo();
       }
     }

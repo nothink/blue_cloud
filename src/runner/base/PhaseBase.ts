@@ -1,5 +1,6 @@
 import StudyRunner from '../StudyRunner';
 import ChampionshipRunner from '../ChampionshipRunner';
+import StoryRunner from '../StoryRunner';
 
 // TODO: Abstract Factory パターンを用いてPhase生成を単純化したい
 // https://refactoring.guru/design-patterns/abstract-factory/typescript/example
@@ -24,7 +25,7 @@ export interface PhaseBase {
 }
 
 /**
- * StudyRunner用のPhase
+ * StudyRunner 用の Phase
  */
 export abstract class StudyPhase implements PhaseBase {
   protected runner: StudyRunner;
@@ -44,7 +45,7 @@ export abstract class StudyPhase implements PhaseBase {
 }
 
 /**
- * ChampionshipRunner
+ * ChampionshipRunner 用の Phase
  */
 export abstract class ChampionshipPhase implements PhaseBase {
   protected runner: ChampionshipRunner;
@@ -53,6 +54,26 @@ export abstract class ChampionshipPhase implements PhaseBase {
    *  コンストラクタ
    */
   constructor(runner: ChampionshipRunner) {
+    this.runner = runner;
+  }
+
+  /**
+   *  単一処理の一単位 (abstract)
+   *  @returns 空のpromiseオブジェクト
+   */
+  public abstract async proceed(): Promise<void>;
+}
+
+/**
+ * StoryRunner 用の Phase
+ */
+export abstract class StoryPhase implements PhaseBase {
+  protected runner: StoryRunner;
+
+  /**
+   *  コンストラクタ
+   */
+  constructor(runner: StoryRunner) {
     this.runner = runner;
   }
 

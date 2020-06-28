@@ -8,8 +8,8 @@
     "usingSkill": false
   },
   "story": {
-    "questId": 1,
-    "usingSpecial": true
+    "questId": 2,
+    "usingSpecial": false
   },
   "championship": {
     "usingCandy": false

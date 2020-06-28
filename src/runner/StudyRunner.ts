@@ -22,8 +22,8 @@ export default class StudyRunner extends RunnerBase {
   public usingSpark: boolean; // Phase行き
   public studyTarget!: string; // Phase行き
   public rank!: number; // Phase行き
-  public studyInfo!: StudyInfo;
-  public deckNum!: number;
+  public studyInfo!: StudyInfo; // Phase行き
+  public deckNum!: number; // Phase行き
 
   protected homeUrl: string;
 

@@ -11,6 +11,8 @@ import url from 'url';
  *  カリスマ決定戦用のランナースクリプト
  */
 export default class RaidwarRunner extends RunnerBase {
+  // TODO: まだ何も実装してない
+  // TODO: 下はデッドなコピペ
   protected homeUrl!: string;
 
   // private usingCandy!: boolean;

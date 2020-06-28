@@ -9,6 +9,6 @@
   },
   "story": {
     "questId": 1,
-    "usingSpecial": true
+    "usingSpecial": false
   }
 }
