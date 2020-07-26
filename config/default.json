@@ -6,25 +6,17 @@
   "chrome": {
     "args": [
       "--app=https://vcard.ameba.jp",
-      "--window-size=350,530",
+      "--window-size=350,520",
       "--load-extension=/Users/nothink/Projects/humi_bookmark/humi_bookmark/",
       "--disable-extensions-except=/Users/nothink/Projects/humi_bookmark/humi_bookmark/",
       "--mute-audio",
-      "--disk-cache-size=33554432",
-      "-–disable-features=site-per-process",
-      "--aggressive-cache-discard",
-      "--disable-notifications",
-      "--disable-remote-fonts",
-      "--disable-remote-playback-api",
-      "--disable-shared-workers",
-      "--disable-voice-input",
-      "--enable-aggressive-domstorage-flushing"
+      "--disable-notifications"
     ],
     "defaultViewport": null,
     "devtools": false,
     "executablePath": "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
     "headless": false,
-    "slowMo": 10
+    "slowMo": 1
   },
   "account": {
     "username": "",

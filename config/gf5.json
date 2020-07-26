@@ -3,9 +3,9 @@
     "profilePath": "./profs/gf5"
   },
   "study": {
-    "testRank": 1,
-    "usingSpark": false,
-    "usingSkill": true
+    "testRank": 3,
+    "usingSpark": true,
+    "usingSkill": false
   },
   "story": {
     "questId": 1,
