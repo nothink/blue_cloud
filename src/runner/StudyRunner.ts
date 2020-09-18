@@ -159,17 +159,21 @@ export default class StudyRunner extends RunnerBase {
    *  @returns 空のpromiseオブジェクト
    */
   private async waitLoading(): Promise<void> {
-    const loaderSel = 'js_loader';
-    if (await Puppet.page.$(loaderSel)) {
+    const loaderSel = '.js_loader';
+    const handler = await Puppet.page.$(loaderSel);
+    if (handler) {
       for (;;) {
-        const classes = await Puppet.page.$eval(loaderSel, (div: Element) => {
-          return div.classList;
-        });
-        if (classes.contains('none')) {
+        const classNames = await Puppet.page.$eval(
+          loaderSel,
+          (div: Element) => {
+            return div.classList;
+          }
+        );
+        if (classNames[2] && classNames[2] === 'none') {
+          // 'none' があればOK
           return;
         } else {
-          await Puppet.page.waitFor(2000);
-          continue;
+          await Puppet.page.waitFor(300);
         }
       }
     }

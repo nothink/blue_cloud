@@ -4,7 +4,7 @@
   },
   "study": {
     "testRank": 3,
-    "usingSpark": true,
+    "usingSpark": false,
     "usingSkill": false
   },
   "story": {
