@@ -109,7 +109,7 @@ export default class BossBattlePhase extends ChampionshipPhase {
         const fireBox = await fire.boundingBox();
         if (fireBox) {
           await Puppet.page.mouse.click(fireBox.x + 1, fireBox.y + 1);
-          await Puppet.page.waitFor(400);
+          await Puppet.page.waitForTimeout(400);
         }
       }
     }

@@ -74,7 +74,7 @@ export default class QuestPhase extends ChampionshipPhase {
         }
       } else {
         // 0.01秒待機
-        // await Puppet.page.waitFor(10);
+        // await Puppet.page.waitForTimeout(10);
       }
     }
   }

@@ -4,12 +4,12 @@
   },
   "study": {
     "testRank": 8,
-    "usingSpark": true,
+    "usingSpark": false,
     "usingSkill": false
   },
   "story": {
-    "questId": 1,
-    "usingSpecial": false
+    "questId": 3,
+    "usingSpecial": true
   },
   "championship": {
     "usingCandy": false

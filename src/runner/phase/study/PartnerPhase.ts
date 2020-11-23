@@ -16,7 +16,7 @@ export default class PartnerPhase extends StudyPhase {
    *  @returns 空のpromiseオブジェクト
    */
   public async proceed(): Promise<void> {
-    await Puppet.page.waitFor(2000);
+    await Puppet.page.waitForTimeout(2000);
 
     const partnersSel =
       'section.bgTiffanyBlue > div.relative.bgPartner.pt5 > div[data-href="#study/deck/select"]';

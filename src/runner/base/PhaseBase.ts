@@ -41,7 +41,7 @@ export abstract class StudyPhase implements PhaseBase {
    *  単一処理の一単位 (abstract)
    *  @returns 空のpromiseオブジェクト
    */
-  public abstract async proceed(): Promise<void>;
+  public abstract proceed(): Promise<void>;
 }
 
 /**
@@ -61,7 +61,7 @@ export abstract class ChampionshipPhase implements PhaseBase {
    *  単一処理の一単位 (abstract)
    *  @returns 空のpromiseオブジェクト
    */
-  public abstract async proceed(): Promise<void>;
+  public abstract proceed(): Promise<void>;
 }
 
 /**
@@ -81,5 +81,5 @@ export abstract class StoryPhase implements PhaseBase {
    *  単一処理の一単位 (abstract)
    *  @returns 空のpromiseオブジェクト
    */
-  public abstract async proceed(): Promise<void>;
+  public abstract proceed(): Promise<void>;
 }

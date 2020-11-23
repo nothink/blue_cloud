@@ -24,7 +24,7 @@ export default class EncountPhase extends ChampionshipPhase {
       while (canvas) {
         // canvasが無くなるまでクリック
         await canvas.click();
-        await Puppet.page.waitFor(50);
+        await Puppet.page.waitForTimeout(50);
       }
     } catch (e) {
       // canvas不在でここにくる

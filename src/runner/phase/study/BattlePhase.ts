@@ -12,7 +12,7 @@ export default class BattlePhase extends StudyPhase {
    *  @returns 空のpromiseオブジェクト
    */
   public async proceed(): Promise<void> {
-    await Puppet.page.waitFor(600);
+    await Puppet.page.waitForTimeout(600);
 
     // コンテニューの時は飛ばす
     await this.passIfContinue();
@@ -25,9 +25,9 @@ export default class BattlePhase extends StudyPhase {
           // (タイミング的に)
           break;
         }
-        await Puppet.page.waitFor(3100); // 初期アニメーション
+        await Puppet.page.waitForTimeout(3100); // 初期アニメーション
         await canvas.click();
-        await Puppet.page.waitFor(5300); // ローディングアニメーション
+        await Puppet.page.waitForTimeout(5300); // ローディングアニメーション
 
         if (this.runner.usingSkill) {
           // スキル必須の場合はスキル利用
@@ -35,12 +35,12 @@ export default class BattlePhase extends StudyPhase {
         }
 
         // 攻撃クリック1回
-        await Puppet.page.waitFor(2100); // 有効化待機
+        await Puppet.page.waitForTimeout(2100); // 有効化待機
         await this.clickOnce();
 
-        await Puppet.page.waitFor(600);
+        await Puppet.page.waitForTimeout(600);
         await this.runner.redo();
-        await Puppet.page.waitFor(600);
+        await Puppet.page.waitForTimeout(600);
       }
     } catch (e) {
       logger.error(e);
@@ -104,7 +104,7 @@ export default class BattlePhase extends StudyPhase {
 
     while (isNaN(count)) {
       try {
-        await Puppet.page.waitFor(1900);
+        await Puppet.page.waitForTimeout(1900);
         count = await this.useSkillSomeone();
       } catch (e) {
         // スキルが無い場合はここに来るはず
@@ -113,9 +113,9 @@ export default class BattlePhase extends StudyPhase {
       await this.runner.redo();
       const canvas = await Puppet.page.$('#canvas');
       if (canvas) {
-        await Puppet.page.waitFor(3100); // 初期アニメーション
+        await Puppet.page.waitForTimeout(3100); // 初期アニメーション
         await canvas.click();
-        await Puppet.page.waitFor(5300); // ローディングアニメーション
+        await Puppet.page.waitForTimeout(5300); // ローディングアニメーション
       }
     }
   }
@@ -152,14 +152,14 @@ export default class BattlePhase extends StudyPhase {
             canvasBox.x + 40 + 65 * x,
             canvasBox.y + 240 + 65 * y
           );
-          await Puppet.page.waitFor(1900);
+          await Puppet.page.waitForTimeout(1900);
           // 発動ボタンをクリック
           await Puppet.page.mouse.click(canvasBox.x + 210, canvasBox.y + 370);
-          await Puppet.page.waitFor(1900);
+          await Puppet.page.waitForTimeout(1900);
           if (target === 1) {
             // ターゲット単体のときはもう一度クリック
             await Puppet.page.mouse.click(canvasBox.x + 210, canvasBox.y + 370);
-            await Puppet.page.waitFor(1900);
+            await Puppet.page.waitForTimeout(1900);
           }
           // 発動したスキルの番号を返す
           return Promise.resolve(count);

@@ -19,7 +19,7 @@ export default class LevelupAnimationPhase extends StoryPhase {
    *  @returns 空のpromiseオブジェクト
    */
   private async passLevelupAnimation(): Promise<void> {
-    await Puppet.page.waitFor(100);
+    await Puppet.page.waitForTimeout(100);
     try {
       const canvas = await Puppet.page.$('#canvas');
       // TODO: ボタン飛ばし入れる？
@@ -32,7 +32,7 @@ export default class LevelupAnimationPhase extends StoryPhase {
         }
       }
     } catch (e) {
-      await Puppet.page.waitFor(100);
+      await Puppet.page.waitForTimeout(100);
     }
   }
 }

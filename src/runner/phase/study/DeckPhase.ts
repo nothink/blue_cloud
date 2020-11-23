@@ -11,7 +11,7 @@ export default class DeckPhase extends StudyPhase {
    *  @returns 空のpromiseオブジェクト
    */
   public async proceed(): Promise<void> {
-    await Puppet.page.waitFor(1000);
+    await Puppet.page.waitForTimeout(1000);
 
     // デッキタブの選択
     const deckSel =
@@ -19,7 +19,7 @@ export default class DeckPhase extends StudyPhase {
     const decks = await Puppet.page.$$(deckSel);
     const deckCnt = this.runner.studyInfo.deck - 1;
     await decks[deckCnt].click();
-    await Puppet.page.waitFor(1000);
+    await Puppet.page.waitForTimeout(1000);
 
     // デッキエリアのボタンを探してクリック
     const areaSel = 'div[data-group="decks"]';

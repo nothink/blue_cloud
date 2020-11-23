@@ -99,7 +99,7 @@ export default class RaidwarRunner extends RunnerBase {
       case 'result':
         return this.skipResult();
       default:
-        await Puppet.page.waitFor(300);
+        await Puppet.page.waitForTimeout(300);
         logger.warn(`unknown phase: "${this.phase}"`);
         return this.goHome();
     }
@@ -163,7 +163,7 @@ export default class RaidwarRunner extends RunnerBase {
         }
       } else {
         // 0.01秒待機
-        // await Puppet.page.waitFor(10);
+        // await Puppet.page.waitForTimeout(10);
       }
     }
   }
@@ -286,7 +286,7 @@ export default class RaidwarRunner extends RunnerBase {
         const fireBox = await fire.boundingBox();
         if (fireBox) {
           await Puppet.page.mouse.click(fireBox.x + 1, fireBox.y + 1);
-          await Puppet.page.waitFor(400);
+          await Puppet.page.waitForTimeout(400);
         }
       }
     }
@@ -334,7 +334,7 @@ export default class RaidwarRunner extends RunnerBase {
       while (canvas) {
         // canvasが無くなるまでクリック
         await canvas.click();
-        await Puppet.page.waitFor(50);
+        await Puppet.page.waitForTimeout(50);
       }
     } catch (e) {
       // canvas不在でここにくる

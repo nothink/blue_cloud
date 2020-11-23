@@ -8,7 +8,7 @@
     "usingSkill": false
   },
   "story": {
-    "questId": 1,
-    "usingSpecial": false
+    "questId": 3,
+    "usingSpecial": true
   }
 }

@@ -69,7 +69,7 @@ class Puppet {
       await this.page.waitForNavigation();
 
       // 手で入る
-      await this.page.waitFor(300000);
+      await this.page.waitForTimeout(300000);
       await this.page.waitForNavigation();
       return;
     }

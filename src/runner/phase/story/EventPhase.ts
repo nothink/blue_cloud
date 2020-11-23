@@ -40,12 +40,12 @@ export default class EventPhase extends StoryPhase {
     });
 
     if (isLoveLove && isFever && sec < 15 && this.runner.usingSpecial) {
-      await Puppet.page.waitFor((sec + 5) * 1000);
+      await Puppet.page.waitForTimeout((sec + 5) * 1000);
       const item = await Puppet.page.$('#js_openItemPopup');
       if (item) {
         await item.click();
       }
-      await Puppet.page.waitFor(100);
+      await Puppet.page.waitForTimeout(100);
       const confirm = await Puppet.page.$(
         '#js_specialItemButton.jsTouchActive'
       );

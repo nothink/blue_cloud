@@ -37,10 +37,10 @@ export default abstract class RunnerBase {
           this.runOnce(),
         ]);
 
-        await Puppet.page.waitFor(200); // 0.2s
+        await Puppet.page.waitForTimeout(200); // 0.2s
       } catch (e) {
         logger.warn(e.stack);
-        await Puppet.page.waitFor(220);
+        await Puppet.page.waitForTimeout(220);
         await this.redo();
       }
     }
@@ -64,7 +64,7 @@ export default abstract class RunnerBase {
         logger.error('exeption:');
         logger.error(e.message);
       } finally {
-        await Puppet.page.waitFor(500);
+        await Puppet.page.waitForTimeout(500);
       }
     }
   }
@@ -89,7 +89,7 @@ export default abstract class RunnerBase {
    *  ループ実行の一単位 (abstract)
    *  @returns 空のpromiseオブジェクト
    */
-  protected abstract async runOnce(): Promise<void>;
+  protected abstract runOnce(): Promise<void>;
 
   /**
    *  エラーページの時、ページをスキップしてホーム指定したページに移動する
@@ -110,7 +110,7 @@ export default abstract class RunnerBase {
       });
       if (heading === 'エラー') {
         // エラーページはh1にエラーとだけある
-        await Puppet.page.waitFor(100);
+        await Puppet.page.waitForTimeout(100);
         await this.goHome();
       }
     }

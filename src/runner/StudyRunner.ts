@@ -146,7 +146,7 @@ export default class StudyRunner extends RunnerBase {
       }
 
       default:
-        await Puppet.page.waitFor(300);
+        await Puppet.page.waitForTimeout(300);
         logger.warn(`unknown phase: "${this.phase}"`);
         return this.goHome();
     }
@@ -173,7 +173,7 @@ export default class StudyRunner extends RunnerBase {
           // 'none' があればOK
           return;
         } else {
-          await Puppet.page.waitFor(300);
+          await Puppet.page.waitForTimeout(300);
         }
       }
     }

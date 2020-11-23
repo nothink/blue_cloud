@@ -116,7 +116,7 @@ export default class ChampionshipRunner extends RunnerBase {
         return ph.proceed();
       }
       default:
-        await Puppet.page.waitFor(300);
+        await Puppet.page.waitForTimeout(300);
         logger.warn(`unknown phase: "${this.phase}"`);
         return this.goHome();
     }

@@ -25,7 +25,7 @@ export default class QuestPhase extends StoryPhase {
       }
     } catch (e) {
       // ページ違いの時は総じて例外が飛ぶ / 例外を飛ばしている
-      await Puppet.page.waitFor(360);
+      await Puppet.page.waitForTimeout(360);
       return;
     }
   }
@@ -53,9 +53,9 @@ export default class QuestPhase extends StoryPhase {
         await mouse.click(buttonBox.x + 16, buttonBox.y + 16);
       } else {
         // エリア取得失敗時は押せない状態
-        await Puppet.page.waitFor(160);
+        await Puppet.page.waitForTimeout(160);
       }
-      await Puppet.page.waitFor(180);
+      await Puppet.page.waitForTimeout(180);
     }
   }
 

@@ -39,7 +39,7 @@ export default class QuestPhase extends StudyPhase {
     // 炭酸不許可で集中pt不足の時は待機してトップに戻る
     if (!this.runner.usingSpark && conc < this.studyInfo.cost) {
       await this.runner.goBasePage();
-      await Puppet.page.waitFor(1000);
+      await Puppet.page.waitForTimeout(1000);
       await this.takeBreak(conc);
       return;
     }
@@ -139,7 +139,7 @@ export default class QuestPhase extends StudyPhase {
       infoKey = 'TOM';
     } else if ((this.runner as StudyRunner).studyTarget === 'ring') {
       await tabs[1].click();
-      await Puppet.page.waitFor(300);
+      await Puppet.page.waitForTimeout(300);
 
       const divSel = 'div.bgCream.pt5.ph5.pb10 > div:nth-child(2) > div';
       const sphere = await Puppet.page.$$eval(divSel, (divs: Element[]) => {
@@ -185,7 +185,7 @@ export default class QuestPhase extends StudyPhase {
       process.stdout.write(
         `\r[next: ${nextStr}]: ` + `${leftStr} remaining...`
       );
-      await Puppet.page.waitFor(200);
+      await Puppet.page.waitForTimeout(200);
       left = next.diff(moment());
     }
     logger.info('Reboot...');
@@ -195,7 +195,7 @@ export default class QuestPhase extends StudyPhase {
         await this.runner.goBasePage();
         break;
       } catch (e) {
-        await Puppet.page.waitFor(200);
+        await Puppet.page.waitForTimeout(200);
         continue;
       }
     }
@@ -260,7 +260,7 @@ export default class QuestPhase extends StudyPhase {
         const button = item as HTMLElement;
         button.click();
       });
-      await Puppet.page.waitFor(1000);
+      await Puppet.page.waitForTimeout(1000);
     }
   }
 }
