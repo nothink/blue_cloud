@@ -4,11 +4,11 @@
   },
   "study": {
     "testRank": 9,
-    "usingSpark": false,
+    "usingSpark": true,
     "usingSkill": false
   },
   "story": {
-    "questId": 3,
-    "usingSpecial": true
+    "questId": 1,
+    "usingSpecial": false
   }
 }

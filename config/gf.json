@@ -5,11 +5,11 @@
   "study": {
     "testRank": 8,
     "usingSpark": false,
-    "usingSkill": false
+    "usingSkill": true
   },
   "story": {
-    "questId": 3,
-    "usingSpecial": true
+    "questId": 1,
+    "usingSpecial": false
   },
   "championship": {
     "usingCandy": false
